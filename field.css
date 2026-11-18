@@ -45,3 +45,18 @@ main{display:flex;flex-direction:column}
 #home.active .game-dashboard>.adventure{display:flex!important;flex:1 1 auto!important;min-height:0!important;}
 #home.active .world-frame{display:block!important;flex:1 1 auto!important;min-height:0!important;}
 #home.active #world{display:block!important;width:100%!important;height:100%!important;min-height:0!important;}
+/* Keep the field and player visible even before the canvas animation's first frame. */
+.world-frame canvas{background:#79ad55 url('assets/field-fallback.svg?v=hero-fix') center/cover no-repeat}
+.hero-sprite{position:absolute;z-index:2;pointer-events:none;background-repeat:no-repeat;image-rendering:pixelated;image-rendering:crisp-edges}
+
+/* Ashen ruin palette for the prologue and Chapter 1. */
+body{background:#17191b}
+.quest-hud{background:#1d1d1ceb;border-color:#98836b;color:#eee2cd;box-shadow:3px 3px #090a0b}
+.quest-hud small{color:#c29b75}
+.world-location{background:#1a1b1cee;border-color:#90765e;color:#e8ddcb}
+.field-action{background:#292523!important;border-color:#a78564!important;color:#f1e3cd!important;box-shadow:3px 3px #0c0c0d!important}
+.field-action:hover{background:#45352e!important}
+.touch-pad button{background:#292b2b;border-color:#65615a;color:#e8dfd1;box-shadow:2px 2px #111}
+.encounter-window{border-color:#927a61;background:#1e1e1e;box-shadow:8px 8px #090a0b}
+.encounter-close{background:#292827;color:#eee1cd;border-color:#564a3d}
+.world-frame canvas{background-color:#222528;background-image:url('assets/field-fallback.svg?v=chapter1-ash')}
