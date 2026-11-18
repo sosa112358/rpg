@@ -38,3 +38,10 @@ main{width:100%;height:100%;min-height:0;margin:0}
  .field-toolbar{inset:auto 8px 8px}
  .field-action{left:0;bottom:3px}
 }
+/* Keep the playable layer visible even if legacy screen rules are loaded first. */
+main{display:flex;flex-direction:column}
+#home.active{display:flex!important;flex:1 1 auto!important;width:100%;min-height:0!important;}
+#home.active>.game-dashboard{display:flex!important;flex:1 1 auto!important;flex-direction:column;width:100%;min-height:0!important;}
+#home.active .game-dashboard>.adventure{display:flex!important;flex:1 1 auto!important;min-height:0!important;}
+#home.active .world-frame{display:block!important;flex:1 1 auto!important;min-height:0!important;}
+#home.active #world{display:block!important;width:100%!important;height:100%!important;min-height:0!important;}
