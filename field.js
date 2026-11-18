@@ -32,7 +32,13 @@
   const battleSection = document.querySelector('#battle');
   document.querySelector('#quick-story').append(storySection.querySelector('.story-card'));
   document.querySelector('#quick-gacha').append(gachaSection.querySelector('.banner'), gachaSection.querySelector('.summon-actions'), gachaSection.querySelector('#roster'));
-  document.querySelector('#quick-battle').append(battleSection.querySelector('.battle-head'), battleSection.querySelector('.battlefield'), battleSection.querySelector('.battle-bottom'));
+  const quickBattle = document.querySelector('#quick-battle');
+  const battleStage = battleSection.querySelector('.battlefield');
+  const battleBottom = battleSection.querySelector('.battle-bottom');
+  const battleHero = document.createElement('canvas');
+  battleHero.className = 'battle-hero-stand'; battleHero.width = 240; battleHero.height = 300; battleHero.setAttribute('aria-label','主人公');
+  battleStage.append(battleBottom,battleHero);
+  quickBattle.append(battleSection.querySelector('.battle-head'),battleStage);
   storySection.remove(); gachaSection.remove(); battleSection.remove();
   document.querySelector('.home-lower')?.remove();
   const quickPanes = [...document.querySelectorAll('.quick-pane')];
@@ -171,6 +177,7 @@
     document.querySelectorAll('[data-quick]').forEach(b => b.classList.toggle('active', b.dataset.quick === chosen));
     document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.screen === chosen));
     if (open) { held.clear(); encounterOverlay.classList.add('visible'); }
+    encounterOverlay.classList.toggle('battle-open',chosen==='battle');
     if(chosen==='story')syncStoryPortrait();
     if (chosen === 'battle' && !battle.started) startBattle();
   }
@@ -222,11 +229,13 @@
     }
     layerCtx.putImageData(pixels, 0, 0);
     characterArt = layer;
+    window.characterArt = layer;
     drawSpeaker(activePages[openingIndex][0]);
     syncStoryPortrait();
     draw();
   });
   spriteSheet.addEventListener('load', () => draw());
+  spriteSheet.addEventListener('load', () => { window.protagonistSheet=spriteSheet; window.dispatchEvent(new Event('rpg-battle-art-ready')); });
   spriteSheet.addEventListener('error', () => console.error('主人公スプライトを読み込めませんでした。'));
 
   const player = {x: 570, y: 590, dir: 'down', step: 0, moving: false};
@@ -258,6 +267,13 @@
     else if(key==='bellGuard'){chapterStage=8.5;setObjective('鐘楼の頂上へ向かおう');say('守りの魔物が倒れ、鐘楼の扉が開いた。');}
     else if(key==='chapterBoss'){chapterStage=10;setObjective('第1章「灰に沈む村」完');playDialogue(chapterDialogues.ending,()=>{if(typeof save!=='undefined'){save.storyDone=true;saveGame();}});}
   });
+  let encounterCooldownUntil = 0;
+  window.addEventListener('rpg-battle-close', () => {
+    encounterOverlay.classList.remove('visible');
+    held.clear(); resetJoystick();
+    encounterCooldownUntil=Date.now()+15000;
+    draw();
+  });
   window.addEventListener('rpg-summoned', () => { setObjective('村人の話を聞き、鐘楼への道を探そう'); });
   const keyMap = {ArrowUp:'up',w:'up',W:'up',ArrowDown:'down',s:'down',S:'down',ArrowLeft:'left',a:'left',A:'left',ArrowRight:'right',d:'right',D:'right'};
   window.addEventListener('keydown', e => {
@@ -283,7 +299,7 @@
     else if(near(summoner,125)&&chapterStage===3&&!summonMet){summonMet=true;playDialogue(chapterDialogues.gald,()=>{chapterStage=4;setObjective('\u751f\u5b58\u8005\u304b\u3089\u9418\u697c\u306e\u8a71\u3092\u805e\u3053\u3046');selectQuick('gacha');});}
     else if(near(witness,115)&&chapterStage===4){playDialogue(chapterDialogues.survivor,()=>{chapterStage=4.1;setObjective('村の周辺で鐘楼へ続く手がかりを3つ探そう');});}
     else if(chapterStage===4.1&&clueSites.some(o=>near(o,90))){const i=clueSites.findIndex(o=>near(o,90)&&!o.found);if(i>=0){playDialogue(chapterDialogues.traces[i],()=>{pendingClue=i;chapterStage=4.2;beginBattle('ambush');});}else say('この場所はもう調べた。');}
-    else if(near(roadGuard,120)&&chapterStage===5){chapterStage=5.5;beginBattle('road');}
+    else if(near(roadGuard,120)&&chapterStage===5&&Date.now()>=encounterCooldownUntil){chapterStage=5.5;beginBattle('road');}
     else if(near(elder,115)&&chapterStage===6){playDialogue(chapterDialogues.elder,()=>{chapterStage=7;setObjective('\u6559\u4f1a\u8de1\u306e\u5b9d\u7bb1\u304b\u3089\u53e4\u6587\u66f8\u3092\u898b\u3064\u3051\u3088\u3046');});}
     else if(near(chest,105)&&chapterStage===7&&!chest.opened){chest.opened=true;if(typeof save!=='undefined'){save.crystals+=30;saveGame();}playDialogue(chapterDialogues.manuscript,()=>{chapterStage=8;setObjective('鐘楼の守りを破って、頂上を目指そう');});}
     else if(near(chest,105)&&chapterStage<7)say('\u53e4\u3044\u5b9d\u7bb1\u3060\u3002\u4eca\u306f\u6751\u4eba\u3092\u52a9\u3051\u3001\u6559\u4f1a\u306e\u8a18\u9332\u3092\u63a2\u3059\u306e\u304c\u5148\u3060\u3002');
@@ -461,11 +477,11 @@
       {y:traveler.y,draw:()=>drawPerson(traveler.x,traveler.y,'traveler','down',0,'\u30ea\u30ea\u30a2')},
       {y:summoner.y,draw:()=>drawPerson(summoner.x,summoner.y,'summoner','down',0,'\u30ac\u30eb\u30c9')},
       ...(battleWon?[{y:witness.y,draw:()=>drawPerson(witness.x,witness.y,'villager','down',0,'生存者')},{y:elder.y,draw:()=>drawPerson(elder.x,elder.y,'elder','down',0,'老婆')}]:[]),
-      ...(chapterStage>=5&&chapterStage<8?[{y:roadGuard.y,draw:()=>drawMonsterAt(roadGuard)}]:[]),
+      ...(chapterStage>=5&&chapterStage<8&&Date.now()>=encounterCooldownUntil?[{y:roadGuard.y,draw:()=>drawMonsterAt(roadGuard)}]:[]),
       ...(chapterStage>=8&&chapterStage<8.2?[{y:bellGuard.y,draw:()=>drawMonsterAt(bellGuard)}]:[]),
       ...(chapterStage>=8.5&&chapterStage<10?[{y:chapterBoss.y,draw:()=>drawMonsterAt(chapterBoss,true)}]:[]),
       ...clueSites.filter(o=>chapterStage===4.1&&!o.found).map(o=>({y:o.y+4,draw:()=>{block(o.x-8,o.y-8,16,16,'#c89457');block(o.x-3,o.y-3,6,6,'#f2d8a2');}})),
-      {y:slime.y,draw:drawSlime},
+      ...(chapterStage<=2?[{y:slime.y,draw:drawSlime}]:[]),
       {y:player.y,draw:drawHero},
     ];
     objects.sort((a,b)=>a.y-b.y).forEach(o=>o.draw());
@@ -489,11 +505,11 @@
     }else player.step+=.035*dt;
     if(!encounterOverlay.classList.contains('visible')){
       const close=(obj,r=98)=>Math.hypot(player.x-obj.x,player.y-obj.y)<r;
-      const target=close(traveler)?'\u30ea\u30ea\u30a2\u3068\u8a71\u3059':close(summoner,120)?'\u30ac\u30eb\u30c9\u3068\u8a71\u3059':close(witness,115)?'\u751f\u5b58\u8005\u3068\u8a71\u3059':close(elder,115)?'\u8001\u5a46\u3068\u8a71\u3059':close(chapterBoss,130)?'\u9418\u697c\u3078\u9032\u3080':close(bellGuard,125)?'\u9418\u697c\u306e\u5b88\u308a\u3092\u5012\u3059':close(roadGuard,120)?'\u756a\u5175\u306b\u6311\u3080':close(slime)?'\u9b54\u7269\u306b\u6311\u3080':clueSites.some(o=>!o.found&&close(o,90))?'\u624b\u304c\u304b\u308a\u3092\u8abf\u3079\u308b':close(chest,105)?'\u53e4\u6587\u66f8\u3092\u8abf\u3079\u308b':'';
+      const target=close(traveler)?'\u30ea\u30ea\u30a2\u3068\u8a71\u3059':close(summoner,120)?'\u30ac\u30eb\u30c9\u3068\u8a71\u3059':close(witness,115)?'\u751f\u5b58\u8005\u3068\u8a71\u3059':close(elder,115)?'\u8001\u5a46\u3068\u8a71\u3059':close(chapterBoss,130)?'\u9418\u697c\u3078\u9032\u3080':close(bellGuard,125)?'\u9418\u697c\u306e\u5b88\u308a\u3092\u5012\u3059':Date.now()>=encounterCooldownUntil&&close(roadGuard,120)?'\u756a\u5175\u306b\u6311\u3080':close(slime)?'\u9b54\u7269\u306b\u6311\u3080':clueSites.some(o=>!o.found&&close(o,90))?'\u624b\u304c\u304b\u308a\u3092\u8abf\u3079\u308b':close(chest,105)?'\u53e4\u6587\u66f8\u3092\u8abf\u3079\u308b':'';
       fieldAction.textContent=target||'\u8abf\u3079\u308b';
-      if(chapterStage===2&&close(slime)){chapterStage=2.5;beginBattle('gate')}
+      if(Date.now()>=encounterCooldownUntil&&chapterStage===2&&close(slime)){chapterStage=2.5;beginBattle('gate')}
       else if(chapterStage===3&&!summonMet&&close(summoner,120))interact();
-      else if(chapterStage===5&&close(roadGuard,120)){chapterStage=5.5;beginBattle('road')}
+      else if(Date.now()>=encounterCooldownUntil&&chapterStage===5&&close(roadGuard,120)){chapterStage=5.5;beginBattle('road')}
       else if(chapterStage===8.5&&close(chapterBoss,130)){chapterStage=9.5;playDialogue(chapterDialogues.bossIntro,()=>beginBattle('chapterBoss'))}
     }else fieldAction.textContent='';
     draw();requestAnimationFrame(loop);

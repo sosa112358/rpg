@@ -38,6 +38,63 @@ main{width:100%;height:100%;min-height:0;margin:0}
  .field-toolbar{inset:auto 8px 8px}
  .field-action{left:0;bottom:3px}
 }
+
+/* Dragon Quest inspired command battle stage. */
+.encounter-overlay.battle-open{padding:2vh 2vw}
+.encounter-overlay.battle-open .encounter-window{width:min(1120px,96vw);max-height:96vh;padding:12px;background:#17191b;border-color:#b49a72}
+.encounter-overlay.battle-open .encounter-close{z-index:8;right:12px;top:10px}
+.encounter-overlay.battle-open .encounter-body{padding:0;overflow:hidden}
+.encounter-overlay.battle-open #quick-battle{height:88vh;max-height:850px;min-height:460px;padding:0;position:relative}
+.encounter-overlay.battle-open .battle-head{position:absolute;z-index:3;top:12px;left:14px;width:470px;padding:8px 18px 8px 12px;background:#8d1918;border:0;border-right:3px solid #e0c187;min-width:245px}
+.encounter-overlay.battle-open .battle-head .eyebrow{margin:0;color:#f0d5a0;font-size:9px}
+.encounter-overlay.battle-open .battle-head h2{margin:2px 0 0;color:#fff2d5;font-size:16px}
+.encounter-overlay.battle-open .turn-pill{position:absolute;left:265px;top:10px;min-width:150px;white-space:nowrap;background:#17191bdc}
+.encounter-overlay.battle-open .battlefield{position:absolute;inset:0;height:auto;min-height:0;border:2px solid #a58c67;border-radius:3px;overflow:hidden;background:linear-gradient(180deg,#111b20 0%,#1d2a2d 43%,#343330 44%,#282725 100%);box-shadow:inset 0 0 100px #050708}
+.encounter-overlay.battle-open .battlefield::before{content:"";position:absolute;z-index:0;inset:0 0 42%;background:radial-gradient(ellipse at 70% 68%,#e3a759 0 4px,#583d2e 7px 24px,#171c1d 29px 46px,transparent 49px),radial-gradient(ellipse at 22% 71%,#bd804c 0 4px,#48372b 7px 20px,#171b1d 24px 37px,transparent 40px),linear-gradient(90deg,transparent 0 12%,#12191b 12% 15%,#32302b 15% 17%,transparent 17% 44%,#141a1b 44% 48%,#34312b 48% 51%,transparent 51% 78%,#141a1b 78% 81%,#36312a 81% 83%,transparent 83%),linear-gradient(180deg,#101719,#202524 70%,#34312b)}
+.encounter-overlay.battle-open .battlefield::after{content:"";position:absolute;z-index:0;left:-8%;right:-8%;bottom:-8%;height:60%;clip-path:polygon(16% 0,84% 0,100% 100%,0 100%);background-color:#353431;background-image:repeating-linear-gradient(0deg,transparent 0 42px,#191a19 43px 46px),repeating-linear-gradient(90deg,transparent 0 70px,#1b1c1b 72px 76px),linear-gradient(135deg,transparent 47%,#514a3d 48%,transparent 49%);opacity:.96}
+.encounter-overlay.battle-open .battle-bg{display:none}
+.encounter-overlay.battle-open .enemy-side{z-index:2;left:9%;right:auto;top:27%;bottom:auto;display:flex;align-items:flex-end;gap:26px}
+.encounter-overlay.battle-open .party-side{z-index:4;left:auto;right:2%;top:14%;bottom:auto;display:block;width:190px;padding:9px 12px;background:#d8d8cbdc;border:2px solid #ece8d3;border-radius:4px;color:#172022;box-shadow:2px 3px #101211}
+.encounter-overlay.battle-open .party-side .combatant{min-width:0;text-align:left}
+.encounter-overlay.battle-open .party-side .sprite{display:none}
+.encounter-overlay.battle-open .party-side strong{display:block;font-size:13px;color:#182122}
+.encounter-overlay.battle-open .party-side small{font-size:10px;color:#27312e}
+.encounter-overlay.battle-open .party-side .hp-track{height:9px;background:#445044;border:1px solid #e3e3ce}
+.encounter-overlay.battle-open .party-side .hp-fill{background:#79b84c}
+.battle-sprite{display:block;width:110px;height:130px;image-rendering:pixelated;filter:drop-shadow(0 7px 4px #101313a8)}
+.combatant.enemy{min-width:110px}
+.combatant.enemy small{display:block;text-shadow:1px 2px #151515;font-size:11px}
+.encounter-overlay.battle-open .battle-hero-stand{position:absolute;z-index:3;left:54%;bottom:13%;width:178px;height:222px;image-rendering:pixelated;filter:drop-shadow(0 9px 5px #101313b5)}
+.encounter-overlay.battle-open .battle-bottom{position:absolute;z-index:6;left:18px;bottom:16px;width:320px;display:block;padding:0;pointer-events:none}
+.encounter-overlay.battle-open .combat-log{display:none}
+.encounter-overlay.battle-open .battle-controls{display:block;padding:10px;background:#101214ed;border:2px solid #d1c5a3;border-radius:4px;box-shadow:3px 4px #090a0b;pointer-events:auto}
+.encounter-overlay.battle-open .active-hero{display:none}
+.encounter-overlay.battle-open .action-buttons{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.encounter-overlay.battle-open .action{min-height:42px;text-align:left;padding:8px 11px;background:#202326;color:#fff2d9;border:1px solid #888475;border-radius:2px}
+.encounter-overlay.battle-open .action.selected{border-color:#e4c878;color:#ffe5a1;box-shadow:inset 3px 0 #e4c878}
+.encounter-overlay.battle-open .action span{float:right;color:#d1c5a3}
+.encounter-overlay.battle-open .action-main{width:100%;margin-top:7px;padding:9px;background:#8c211b;color:#fff0d3;border:1px solid #e0c187;border-radius:2px}
+@media(max-width:720px){
+ .encounter-overlay.battle-open{padding:0}
+ .encounter-overlay.battle-open .encounter-window{width:100vw;max-height:100dvh;height:100dvh;padding:0;border:0}
+ .encounter-overlay.battle-open .encounter-close{top:5px;right:5px}
+ .encounter-overlay.battle-open #quick-battle{height:calc(100dvh - 36px);min-height:0}
+ .encounter-overlay.battle-open .battle-head{top:8px;left:8px;width:300px;min-width:185px;padding:6px 10px}
+ .encounter-overlay.battle-open .battle-head h2{font-size:13px}
+ .encounter-overlay.battle-open .turn-pill{display:none}
+ .encounter-overlay.battle-open .enemy-side{left:4%;top:27%;gap:4px}
+ .encounter-overlay.battle-open .combatant.enemy{min-width:72px}
+ .encounter-overlay.battle-open .battle-sprite{width:68px;height:84px}
+ .encounter-overlay.battle-open .combatant.enemy small{font-size:8px}
+ .encounter-overlay.battle-open .party-side{top:11%;right:2%;width:132px;padding:6px}
+ .encounter-overlay.battle-open .party-side strong{font-size:10px}
+ .encounter-overlay.battle-open .party-side small{font-size:8px}
+ .encounter-overlay.battle-open .battle-hero-stand{left:48%;bottom:24%;width:110px;height:140px}
+ .encounter-overlay.battle-open .battle-bottom{left:7px;bottom:7px;width:min(280px,74vw)}
+ .encounter-overlay.battle-open .battle-controls{padding:6px}
+ .encounter-overlay.battle-open .action{min-height:34px;padding:5px 7px;font-size:10px}
+ .encounter-overlay.battle-open .action-main{padding:7px;font-size:11px}
+}
 /* Keep the playable layer visible even if legacy screen rules are loaded first. */
 main{display:flex;flex-direction:column}
 #home.active{display:flex!important;flex:1 1 auto!important;width:100%;min-height:0!important;}
