@@ -1,5 +1,6 @@
 (() => {
   let objective;
+  let characterArt = null;
   const home = document.querySelector('#home');
   const hero = home.querySelector('.hero');
   hero.className = 'field-heading';
@@ -44,27 +45,107 @@
   encounterOverlay.addEventListener('click', e => { if (e.target === encounterOverlay || e.target.closest('.encounter-close')) encounterOverlay.classList.remove('visible'); });
   const prologue = document.createElement('div');
   prologue.className = 'prologue-overlay visible';
-  prologue.innerHTML = '<section class="prologue-box"><small>PROLOGUE / NAMELESS SWORDSMAN</small><h2></h2><p></p><button type="button" class="primary">次へ <span>▶</span></button></section>';
+  prologue.innerHTML = '<section class="prologue-box"><small>CHAPTER 01 / ASHEN VILLAGE</small><div class="dialogue-layout"><canvas class="dialogue-portrait" width="150" height="180" aria-label="話している人物"></canvas><div class="dialogue-copy"><h2></h2><p></p></div></div><button type="button" class="primary">次へ <span>▶</span></button></section>';
   home.append(prologue);
   const opening = [
     ['名もなき剣士', '冷たい石床の上で、あなたは目を覚ました。手には見覚えのない黒い剣。自分の名前も、ここへ来た理由も思い出せない。'],
     ['遺跡の少女', '「……やっと目覚めたんだね」少女はリリアと名乗った。地上では、太陽が黒く染まった災厄『灰の夜』から、すでに300年が過ぎていた。'],
     ['灰喰い', '「あなたは、この世界を滅ぼした存在を倒すために作られた剣士なの」その言葉を遮るように石扉が砕け、魔物が遺跡へなだれ込んだ。黒い剣を握り、戦いに備えよう。']
   ];
+  opening[2][0] = 'リリア';
+  const chapterDialogues = {
+    lilia: [
+      ['リリア','歩ける？　あなたは祭壇のそばで眠っていたの。黒い剣だけが、ずっとあなたを待っていたみたいに残されていた。'],
+      ['名もなき剣士','俺を知っているのか。どうして、ここにいた？'],
+      ['リリア','わからない。私が覚えているのは、あなたを目覚めさせることだけ。地上へ出れば、何か思い出せるかもしれない。'],
+      ['リリア','でも、石門の向こうから灰喰いが来る。剣が近づくと、あいつらはひどく興奮するの。気をつけて。']
+    ],
+    gald: [
+      ['ガルド','あの魔物を退けたのはお前か。俺はガルド、城塞騎士団の生き残りだ。'],
+      ['名もなき剣士','村はなぜ、こんな姿に？'],
+      ['ガルド','灰の夜から三百年。ここは「灰に沈む村」と呼ばれている。人々は食料庫の地下に身を隠しているが、魔物が道を塞いだ。'],
+      ['ガルド','村を救うには、まず生存者を集め、教会跡の鐘を鳴らす。鐘の音があれば、地下にいる者たちへ合図を送れる。'],
+      ['ガルド','一人では危険だ。星のかけらで仲間を呼べる術を教える。誰を頼るかは、お前が決めろ。']
+    ],
+    survivor: [
+      ['村人','鐘楼へ向かう道に、灰色の鎧を着た大きな魔物がいた。そいつが現れてから、魔物たちが村へ押し寄せたんだ。'],
+      ['名もなき剣士','その魔物は、黒い剣を見ていたか？'],
+      ['村人','ああ。まるで剣を知っているように、こちらを指さしていた。……頼む、鐘楼の道を取り戻してくれ。']
+    ],
+    traces: [
+      [['村人','この足跡は鐘楼ではなく、古い教会へ続いている。魔物は何かを探していたのかもしれない。']],
+      [['リリア','この壁の印……古文書にあった封印と同じ形。鐘楼の地下へ入る鍵になりそう。']],
+      [['名もなき剣士','この剣が近づくと、灰が逆巻いている。魔物は俺を追っているんじゃない。剣の中の何かを恐れている。']]
+    ],
+    elder: [
+      ['老婆','教会の地下には、灰の夜より前の記録が隠されている。あの剣を持つ人が来たら渡せと、先祖から言い伝えられてきた。'],
+      ['名もなき剣士','俺を待っていた人がいたのか。'],
+      ['老婆','待っていたのはあなたではなく、その剣かもしれないね。古文書を読めば、鐘楼の魔物がなぜあなたを狙うのか、手がかりが見つかるだろう。']
+    ],
+    manuscript: [
+      ['リリア','これは灰の夜の記録……「黒き剣は、天より降りた声を断つため鍛えられた」とある。'],
+      ['ガルド','神の声を断つ剣だと？　そんなものが本当に存在するなら、騎士団が知らないはずはない。'],
+      ['名もなき剣士','この剣を作ったのは誰だ。俺は何者なんだ。'],
+      ['リリア','答えはない。でも続きに、鐘楼の封印を解く言葉が記されている。あの魔物を止めれば、村人を助けられる。']
+    ],
+    bossIntro: [
+      ['灰鎧の将','その剣を、まだ持っていたか。三百年経っても、役目を忘れぬとはな。'],
+      ['名もなき剣士','俺を知っているのか。お前は何者だ？'],
+      ['灰鎧の将','思い出すな。思い出せば、また世界を灰にする。剣を渡せ。村人は見逃してやろう。'],
+      ['リリア','信じないで。あいつは、村人を鐘楼に閉じ込めている！'],
+      ['灰鎧の将','ならば、ここで終わらせる。']
+    ],
+    bellGuard: [
+      ['ガルド','鐘楼の守りがまだ残っている。あれを倒せば、地下の人たちへ合図を送れる。'],
+      ['リリア','鐘が鳴ったら、村の人たちを逃がすの。灰鎧の将は私たちが引きつける。'],
+      ['名もなき剣士','やろう。村を、そしてこの剣が隠しているものを確かめる。']
+    ],
+    ending: [
+      ['灰鎧の将','なぜ……剣が、主の声に応えない……'],
+      ['ガルド','鐘楼の魔物が倒れたぞ！　地下のみんな、もう出てきていい！'],
+      ['老婆','古文書の最後に、まだ一行あるよ。「剣士が目覚めたなら、神々もまた目覚める」……。'],
+      ['リリア','この村は救われた。でも、あなたの剣が何のために作られたのかは、まだわからない。'],
+      ['名もなき剣士','なら、確かめに行こう。俺の記憶も、この世界で起きたことも。']
+    ]
+  };
   let openingIndex = 0;
+  let activePages = opening, dialogueDone = null;
+  const portraitCanvas = prologue.querySelector('.dialogue-portrait');
+  const portraitCtx = portraitCanvas.getContext('2d');
+  const portraits = {
+    '名もなき剣士': {x:680,y:90,w:80,h:150}, 'リリア': {x:20,y:90,w:105,h:155}, 'ガルド': {x:365,y:90,w:105,h:155},
+    '村人': {x:10,y:586,w:82,h:145}, '老婆': {x:1060,y:586,w:112,h:145}, '灰喰い': {x:10,y:858,w:80,h:82}, '灰鎧の将': {x:680,y:90,w:90,h:155}
+  };
+  function drawSpeaker(name) {
+    portraitCtx.clearRect(0,0,150,180);
+    const crop=portraits[name]||portraits['村人'];
+    if(characterArt) portraitCtx.drawImage(characterArt,crop.x,crop.y,crop.w,crop.h,8,0,134,166);
+  }
+  function syncStoryPortrait() {
+    const canvas=document.querySelector('#storyPortrait');
+    if(!canvas||!characterArt)return;
+    const title=document.querySelector('#storyTitle')?.textContent||'';
+    const speaker=title.includes('リリア')||title.includes('侵入')?'リリア':'名もなき剣士';
+    const crop=portraits[speaker];
+    const c=canvas.getContext('2d');c.clearRect(0,0,canvas.width,canvas.height);c.drawImage(characterArt,crop.x,crop.y,crop.w,crop.h,0,0,canvas.width,canvas.height);
+    const name=document.querySelector('#storySpeaker');if(name)name.textContent=speaker;
+  }
+  function playDialogue(pages, done) { activePages=pages; openingIndex=0; dialogueDone=done||null; showOpening(); prologue.classList.add('visible'); held.clear(); }
   const showOpening = () => {
-    prologue.querySelector('h2').textContent = opening[openingIndex][0];
-    prologue.querySelector('p').textContent = opening[openingIndex][1];
-    prologue.querySelector('button').innerHTML = openingIndex === opening.length - 1 ? '遺跡を進む <span>▶</span>' : '次へ <span>▶</span>';
+    const page=activePages[openingIndex];
+    prologue.querySelector('h2').textContent=page[0];
+    prologue.querySelector('p').textContent=page[1];
+    drawSpeaker(page[0]);
+    prologue.querySelector('button').innerHTML=openingIndex===activePages.length-1?'進む <span>▶</span>':'次へ <span>▶</span>';
   };
   showOpening();
   prologue.querySelector('button').addEventListener('click', () => {
-    if (++openingIndex < opening.length) showOpening();
+    if (++openingIndex < activePages.length) showOpening();
     else {
       prologue.classList.remove('visible');
-      storyMet = true;
-      setObjective('リリアに話しかけ、遺跡の出口を探そう');
-      say('リリア「立てる？ この先に出口がある。でも、魔物が近くまで来ているみたい……」');
+      const done=dialogueDone; dialogueDone=null; activePages=opening;
+      if(done) done();
+      else { storyMet=true; chapterStage=1; setObjective('リリアに話しかけ、遺跡の出口を探そう'); say('リリア「立てる？ この先に出口がある。でも、魔物が近くまで来ているみたい……」'); }
     }
   });
   const joystick = document.createElement('div');
@@ -90,6 +171,7 @@
     document.querySelectorAll('[data-quick]').forEach(b => b.classList.toggle('active', b.dataset.quick === chosen));
     document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.screen === chosen));
     if (open) { held.clear(); encounterOverlay.classList.add('visible'); }
+    if(chosen==='story')syncStoryPortrait();
     if (chosen === 'battle' && !battle.started) startBattle();
   }
   document.querySelectorAll('[data-quick]').forEach(b => b.addEventListener('click', () => selectQuick(b.dataset.quick)));
@@ -128,7 +210,6 @@
   const spriteSheet = new Image();
   spriteSheet.src = 'assets/protagonist-sheet.png?v=chapter1-ash';
   const characterSheet = new Image();
-  let characterArt = null;
   characterSheet.src = 'assets/character-sheet.png?v=chapter1-ash';
   characterSheet.addEventListener('load', () => {
     const layer = document.createElement('canvas');
@@ -141,6 +222,8 @@
     }
     layerCtx.putImageData(pixels, 0, 0);
     characterArt = layer;
+    drawSpeaker(activePages[openingIndex][0]);
+    syncStoryPortrait();
     draw();
   });
   spriteSheet.addEventListener('load', () => draw());
@@ -152,6 +235,12 @@
   const slime = {x: 1070, y: 545};
   const village = {x: 1160, y: 770};
   const summoner = {x: 1110, y: 840};
+  const witness = {x: 1320, y: 610};
+  const elder = {x: 1430, y: 770};
+  const roadGuard = {x: 1570, y: 970};
+  const bellGuard = {x: 1480, y: 930};
+  const chapterBoss = {x: 1640, y: 1010};
+  const clueSites = [{x:1240,y:720,found:false},{x:1420,y:650,found:false},{x:1500,y:800,found:false}];
   const pond = {x: 960, y: 635, rx: 142, ry: 600};
   const held = new Set();
   // Hand-placed tree groups frame the paths and landmarks.
@@ -160,9 +249,16 @@
     {x:810,y:370},{x:790,y:900},{x:1210,y:350},{x:1280,y:620},{x:1470,y:430},
     {x:1420,y:900},{x:1690,y:700}
   ];
-  let storyMet = false, storyComplete = false, summonMet = false, slimeMet = false, battleWon = false;
-  window.addEventListener('rpg-battle-won', () => { battleWon = true; setObjective('\u7070\u306b\u6c88\u3080\u6751\u3067\u751f\u5b58\u8005\u3092\u63a2\u305d\u3046'); say('\u9b54\u7269\u3092\u9000\u3051\u305f\u3002\u907a\u8de1\u306e\u5916\u306b\u306f\u3001\u7070\u306b\u6c88\u3080\u6751\u304c\u5e83\u304c\u3063\u3066\u3044\u308b\u3002'); worldFrame.querySelector('.world-location').textContent='\u7070\u306b\u6c88\u3080\u6751 \u2014 \u7070\u306e\u591c\u304b\u3089300\u5e74'; });
-  window.addEventListener('rpg-summoned', () => { setObjective('\u6751\u306f\u305a\u308c\u306e\u5b9d\u7bb1\u304b\u3089\u53e4\u6587\u66f8\u3092\u63a2\u305d\u3046'); });
+  let storyMet = false, storyComplete = false, summonMet = false, slimeMet = false, battleWon = false, chapterStage = 0, pendingClue = -1;
+  window.addEventListener('rpg-battle-won', e => {
+    const key=e.detail?.key||'gate'; battleWon=true;
+    if(key==='gate'){chapterStage=3;setObjective('ガルドに村の状況を聞こう');worldFrame.querySelector('.world-location').textContent='灰に沈む村 — 灰の夜から300年';say('魔物を退けた。石扉の向こうには、灰に沈む村が広がっている。');}
+    else if(key==='road'){chapterStage=6;setObjective('老婆から古文書の場所を聞こう');say('鐘楼への道を取り戻した。村の老婆が、教会跡で待っている。');}
+    else if(key==='ambush'){if(pendingClue>=0)clueSites[pendingClue].found=true;chapterStage=4.1;pendingClue=-1;if(clueSites.every(o=>o.found)){chapterStage=5;setObjective('鐘楼への道を塞ぐ魔物を倒そう');say('三つの手がかりを守る魔物を退けた。鐘楼への道が見えた。');}else setObjective('残りの手がかりを探そう（'+clueSites.filter(o=>!o.found).length+'つ）');}
+    else if(key==='bellGuard'){chapterStage=8.5;setObjective('鐘楼の頂上へ向かおう');say('守りの魔物が倒れ、鐘楼の扉が開いた。');}
+    else if(key==='chapterBoss'){chapterStage=10;setObjective('第1章「灰に沈む村」完');playDialogue(chapterDialogues.ending,()=>{if(typeof save!=='undefined'){save.storyDone=true;saveGame();}});}
+  });
+  window.addEventListener('rpg-summoned', () => { setObjective('村人の話を聞き、鐘楼への道を探そう'); });
   const keyMap = {ArrowUp:'up',w:'up',W:'up',ArrowDown:'down',s:'down',S:'down',ArrowLeft:'left',a:'left',A:'left',ArrowRight:'right',d:'right',D:'right'};
   window.addEventListener('keydown', e => {
     if (prologue.classList.contains('visible')) { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); prologue.querySelector('button').click(); } return; }
@@ -180,15 +276,23 @@
   });
   fieldAction.textContent = '調べる';
   fieldAction.addEventListener('click', interact);
+  function beginBattle(key) { window.nextEncounterKey=key; say(key==='chapterBoss'?'\u7070\u9396\u306e\u5c06\u304c\u5927\u5263\u3092\u69cb\u3048\u305f\uff01':'\u9b54\u7269\u304c\u884c\u304f\u624b\u3092\u585e\u3044\u3060\uff01'); setTimeout(()=>setScreen('battle'),220); }
   function interact() {
-    const near = (obj, range=90) => Math.hypot(player.x-obj.x, player.y-obj.y) < range;
-    if (near(chest, 105)) {
-      if (!chest.opened) { chest.opened = true; if (typeof save !== 'undefined') { save.crystals += 30; saveGame(); } say(battleWon ? '\u53e4\u6587\u66f8\u3092\u898b\u3064\u3051\u305f\u3002\u7070\u306e\u591c\u306e\u8a18\u9332\u304c\u6b8b\u3055\u308c\u3066\u3044\u308b\u3002 \u661f\u306e\u304b\u3051\u308930\u500b\u3092\u624b\u306b\u5165\u308c\u305f\u3002' : '\u5b9d\u7bb1\u3092\u958b\u3051\u305f\u3002\u661f\u306e\u304b\u3051\u308930\u500b\u3092\u624b\u306b\u5165\u308c\u305f\u3002'); if (battleWon) setObjective('\u7b2c1\u7ae0\u300c\u7070\u306b\u6c88\u3080\u6751\u300d\u5b8c\u4e86'); }
-      else say('宝箱は空っぽだ。');
-    } else if (near(traveler, 110)) { say('\u30ea\u30ea\u30a2\u300c\u3053\u3053\u306f\u53e4\u4ee3\u907a\u8de1\u3002\u5730\u4e0a\u3067\u306f\u7070\u306e\u591c\u304b\u3089300\u5e74\u304c\u904e\u304e\u305f\u306e\u300d'); setScreen('story'); }
-    else if (near(summoner, 115)) { say('\u30ac\u30eb\u30c9\u300c\u6751\u3092\u6551\u3063\u3066\u304f\u308c\u305f\u793c\u306b\u3001\u4ef2\u9593\u3092\u547c\u3076\u8853\u3092\u6559\u3048\u3088\u3046\u300d'); setScreen('gacha'); }
-    else if (near(slime, 110)) { say('\u7070\u55b0\u3044\u304c\u9ed2\u3044\u5263\u306b\u53cd\u5fdc\u3057\u3066\u8972\u3044\u304b\u304b\u3063\u3066\u304d\u305f\uff01'); setTimeout(() => setScreen('battle'), 300); }
-    else say('夜空には、まだ見ぬ星が輝いている。');
+    const near=(obj,range=100)=>Math.hypot(player.x-obj.x,player.y-obj.y)<range;
+    if(near(traveler,115)&&chapterStage===1){playDialogue(chapterDialogues.lilia,()=>{storyComplete=true;chapterStage=2;setObjective('\u77f3\u6249\u306e\u524d\u306b\u3044\u308b\u7070\u55b0\u3044\u3092\u5012\u305d\u3046');say('\u7825\u3051\u305f\u77f3\u6249\u306e\u5965\u3067\u3001\u7070\u3092\u307e\u3068\u3063\u305f\u9b54\u7269\u304c\u3046\u3054\u3081\u3044\u3066\u3044\u308b\u3002');});}
+    else if(near(summoner,125)&&chapterStage===3&&!summonMet){summonMet=true;playDialogue(chapterDialogues.gald,()=>{chapterStage=4;setObjective('\u751f\u5b58\u8005\u304b\u3089\u9418\u697c\u306e\u8a71\u3092\u805e\u3053\u3046');selectQuick('gacha');});}
+    else if(near(witness,115)&&chapterStage===4){playDialogue(chapterDialogues.survivor,()=>{chapterStage=4.1;setObjective('村の周辺で鐘楼へ続く手がかりを3つ探そう');});}
+    else if(chapterStage===4.1&&clueSites.some(o=>near(o,90))){const i=clueSites.findIndex(o=>near(o,90)&&!o.found);if(i>=0){playDialogue(chapterDialogues.traces[i],()=>{pendingClue=i;chapterStage=4.2;beginBattle('ambush');});}else say('この場所はもう調べた。');}
+    else if(near(roadGuard,120)&&chapterStage===5){chapterStage=5.5;beginBattle('road');}
+    else if(near(elder,115)&&chapterStage===6){playDialogue(chapterDialogues.elder,()=>{chapterStage=7;setObjective('\u6559\u4f1a\u8de1\u306e\u5b9d\u7bb1\u304b\u3089\u53e4\u6587\u66f8\u3092\u898b\u3064\u3051\u3088\u3046');});}
+    else if(near(chest,105)&&chapterStage===7&&!chest.opened){chest.opened=true;if(typeof save!=='undefined'){save.crystals+=30;saveGame();}playDialogue(chapterDialogues.manuscript,()=>{chapterStage=8;setObjective('鐘楼の守りを破って、頂上を目指そう');});}
+    else if(near(chest,105)&&chapterStage<7)say('\u53e4\u3044\u5b9d\u7bb1\u3060\u3002\u4eca\u306f\u6751\u4eba\u3092\u52a9\u3051\u3001\u6559\u4f1a\u306e\u8a18\u9332\u3092\u63a2\u3059\u306e\u304c\u5148\u3060\u3002');
+    else if(near(bellGuard,125)&&chapterStage===8){chapterStage=8.2;playDialogue(chapterDialogues.bellGuard,()=>beginBattle('bellGuard'));}
+    else if(near(chapterBoss,130)&&chapterStage===8.5){chapterStage=9.5;playDialogue(chapterDialogues.bossIntro,()=>beginBattle('chapterBoss'));}
+    else if(near(traveler,115)&&chapterStage>1)say('\u30ea\u30ea\u30a2\u300c\u3053\u306e\u5263\u306b\u53cd\u5fdc\u3057\u3066\u3044\u308b\u9b54\u7269\u304c\u3044\u308b\u3002\u6c17\u3092\u3064\u3051\u3066\u300d');
+    else if(near(summoner,125)&&chapterStage>3)say('\u30ac\u30eb\u30c9\u300c\u9418\u697c\u3078\u306e\u9053\u3092\u53d6\u308a\u623b\u305b\u3002\u751f\u5b58\u8005\u304c\u5730\u4e0b\u306b\u3044\u308b\u300d');
+    else if(near(slime,110)&&chapterStage===2){slimeMet=true;chapterStage=2.5;beginBattle('gate');}
+    else say('\u7070\u306b\u8986\u308f\u308c\u305f\u907a\u8de1\u3060\u3002\u8db3\u5143\u306b\u6c17\u3092\u3064\u3051\u3066\u9032\u3082\u3046\u3002');
   }
   let messageTimer;
   message.textContent = '\u53e4\u4ee3\u907a\u8de1\u3067\u76ee\u3092\u899a\u307e\u3057\u305f\u3002\u30ea\u30ea\u30a2\u306b\u8fd1\u3065\u3044\u3066\u8a71\u3092\u805e\u3053\u3046\u3002';
@@ -203,10 +307,10 @@
     block(x+12,y-29,9,7,'#39774c');
   }
   function drawPerson(x,y,kind,dir,step,label) {
-    const art = kind === 'traveler' ? {x:20,y:90,w:105,h:155} : kind === 'summoner' ? {x:365,y:90,w:105,h:155} : {x:10,y:586,w:85,h:145};
+    const art = kind === 'traveler' ? {x:20,y:90,w:105,h:155} : kind === 'summoner' ? {x:365,y:90,w:105,h:155} : kind === 'elder' ? {x:1055,y:586,w:120,h:145} : {x:10,y:586,w:85,h:145};
     if (characterArt) {
       const bob = step ? Math.sin(step) * 2 : 0;
-      const w = kind === 'traveler' ? 63 : 58, h = kind === 'traveler' ? 94 : 88;
+      const w = kind === 'traveler' ? 63 : kind === 'elder' ? 64 : 58, h = kind === 'traveler' ? 94 : kind === 'elder' ? 84 : 88;
       ctx.drawImage(characterArt, art.x, art.y, art.w, art.h, x-w/2, y-h+bob, w, h);
       if (label) { ctx.font='14px monospace'; ctx.textAlign='center'; ctx.fillStyle='#fff'; ctx.fillText(label,x,y-h-5); }
       return;
@@ -234,6 +338,11 @@
     block(x-19,y-5,38,16,'#677568');block(x-15,y-13,30,11,'#829080');
     block(x-8,y-18,16,8,'#a2aa91');block(x-4,y-9,4,8,'#d0c7a4');
     block(x-9,y-2,4,5,'#25282a');block(x+6,y-2,4,5,'#25282a');block(x-4,y+5,8,2,'#35312d');
+  }
+  function drawMonsterAt(obj, boss=false) {
+    if(characterArt){const r=boss?{x:560,y:830,w:132,h:145}:{x:275,y:830,w:100,h:125};ctx.drawImage(characterArt,r.x,r.y,r.w,r.h,obj.x-(boss?43:34),obj.y-(boss?105:80),boss?86:68,boss?105:80);}
+    else drawSlime();
+    ctx.font='14px monospace';ctx.textAlign='center';ctx.fillStyle='#f4e5cc';ctx.fillText(boss?'灰鎧の将':'鐘楼の番兵',obj.x,obj.y-(boss?110:86));
   }
   function drawHero() {
     const down = [{x:400,y:26,w:158,h:222},{x:580,y:26,w:158,h:222},{x:765,y:26,w:170,h:222}];
@@ -345,11 +454,16 @@
       {y:chest.y,draw:drawChest},
       {y:traveler.y,draw:()=>drawPerson(traveler.x,traveler.y,'traveler','down',0,'\u30ea\u30ea\u30a2')},
       {y:summoner.y,draw:()=>drawPerson(summoner.x,summoner.y,'summoner','down',0,'\u30ac\u30eb\u30c9')},
+      ...(battleWon?[{y:witness.y,draw:()=>drawPerson(witness.x,witness.y,'villager','down',0,'生存者')},{y:elder.y,draw:()=>drawPerson(elder.x,elder.y,'elder','down',0,'老婆')}]:[]),
+      ...(chapterStage>=5&&chapterStage<8?[{y:roadGuard.y,draw:()=>drawMonsterAt(roadGuard)}]:[]),
+      ...(chapterStage>=8&&chapterStage<8.2?[{y:bellGuard.y,draw:()=>drawMonsterAt(bellGuard)}]:[]),
+      ...(chapterStage>=8.5&&chapterStage<10?[{y:chapterBoss.y,draw:()=>drawMonsterAt(chapterBoss,true)}]:[]),
+      ...clueSites.filter(o=>chapterStage===4.1&&!o.found).map(o=>({y:o.y+4,draw:()=>{block(o.x-8,o.y-8,16,16,'#c89457');block(o.x-3,o.y-3,6,6,'#f2d8a2');}})),
       {y:slime.y,draw:drawSlime},
       {y:player.y,draw:drawHero},
     ];
     objects.sort((a,b)=>a.y-b.y).forEach(o=>o.draw());
-    const nearby=[chest,traveler,summoner,slime].find(o=>Math.hypot(player.x-o.x,player.y-o.y)<100);
+    const nearby=[chest,traveler,summoner,witness,elder,roadGuard,bellGuard,chapterBoss,slime,...clueSites.filter(o=>!o.found)].find(o=>Math.hypot(player.x-o.x,player.y-o.y)<110);
     if(nearby){block(player.x-4,player.y-112,8,5,'#f4d483');block(player.x-10,player.y-107,20,4,'#f4d483')}
     ctx.restore();
   }
@@ -369,11 +483,12 @@
     }else player.step+=.035*dt;
     if(!encounterOverlay.classList.contains('visible')){
       const close=(obj,r=98)=>Math.hypot(player.x-obj.x,player.y-obj.y)<r;
-      const target=close(traveler)?'\u30ea\u30ea\u30a2\u3068\u8a71\u3059':close(summoner,110)?'\u30ac\u30eb\u30c9\u3068\u8a71\u3059':close(slime)?'\u9b54\u7269\u306b\u6311\u3080':close(chest,105)?'\u53e4\u6587\u66f8\u3092\u8abf\u3079\u308b':'';
-      fieldAction.textContent=target||'調べる';
-      if(!storyMet&&close(traveler)){storyMet=true;setObjective('\u30ea\u30ea\u30a2\u304b\u3089\u76ee\u899a\u3081\u305f\u7406\u7531\u3092\u805e\u3053\u3046');say('\u30ea\u30ea\u30a2\u300c\u2026\u2026\u3084\u3063\u3068\u76ee\u899a\u3081\u305f\u3093\u3060\u306d\u300d');setScreen('story')}
-      else if(storyComplete&&!slimeMet&&close(slime)){slimeMet=true;setObjective('\u907a\u8de1\u306b\u4fb5\u5165\u3057\u305f\u9b54\u7269\u3092\u5012\u305d\u3046');say('\u7070\u55b0\u3044\u304c\u9ed2\u3044\u5263\u306b\u53cd\u5fdc\u3057\u3066\u8972\u3044\u304b\u304b\u3063\u3066\u304d\u305f\uff01');setScreen('battle')}
-      else if(battleWon&&!summonMet&&close(summoner)){summonMet=true;setObjective('\u30ac\u30eb\u30c9\u304b\u3089\u6751\u306e\u8a71\u3092\u805e\u3053\u3046');say('\u30ac\u30eb\u30c9\u300c\u7070\u306e\u591c\u304b\u3089300\u5e74\u2026\u2026\u6751\u3092\u5b88\u3063\u3066\u304f\u308c\u305f\u306e\u304b\u300d');setScreen('gacha')}
+      const target=close(traveler)?'\u30ea\u30ea\u30a2\u3068\u8a71\u3059':close(summoner,120)?'\u30ac\u30eb\u30c9\u3068\u8a71\u3059':close(witness,115)?'\u751f\u5b58\u8005\u3068\u8a71\u3059':close(elder,115)?'\u8001\u5a46\u3068\u8a71\u3059':close(chapterBoss,130)?'\u9418\u697c\u3078\u9032\u3080':close(bellGuard,125)?'\u9418\u697c\u306e\u5b88\u308a\u3092\u5012\u3059':close(roadGuard,120)?'\u756a\u5175\u306b\u6311\u3080':close(slime)?'\u9b54\u7269\u306b\u6311\u3080':clueSites.some(o=>!o.found&&close(o,90))?'\u624b\u304c\u304b\u308a\u3092\u8abf\u3079\u308b':close(chest,105)?'\u53e4\u6587\u66f8\u3092\u8abf\u3079\u308b':'';
+      fieldAction.textContent=target||'\u8abf\u3079\u308b';
+      if(chapterStage===2&&close(slime)){chapterStage=2.5;beginBattle('gate')}
+      else if(chapterStage===3&&!summonMet&&close(summoner,120))interact();
+      else if(chapterStage===5&&close(roadGuard,120)){chapterStage=5.5;beginBattle('road')}
+      else if(chapterStage===8.5&&close(chapterBoss,130)){chapterStage=9.5;playDialogue(chapterDialogues.bossIntro,()=>beginBattle('chapterBoss'))}
     }else fieldAction.textContent='';
     draw();requestAnimationFrame(loop);
   }

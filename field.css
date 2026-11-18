@@ -61,12 +61,17 @@ body{background:#17191b}
 .encounter-close{background:#292827;color:#eee1cd;border-color:#564a3d}
 .world-frame canvas{background-color:#222528;background-image:url('assets/field-fallback.svg?v=chapter1-ash')}
 .mobile-joystick{display:none}
+.story-speaker{display:flex;align-items:center;gap:10px;margin:8px 0}
+.story-speaker canvas{width:86px;height:96px;object-fit:contain;image-rendering:pixelated;background:#242226;border:1px solid #67594d}
+.story-speaker strong{color:#d8b77f;font-size:13px}
 .prologue-overlay{position:fixed;inset:0;z-index:30;display:none;align-items:flex-end;justify-content:center;padding:24px;background:#090b0bd9}
 .prologue-overlay.visible{display:flex}
 .prologue-box{width:min(760px,100%);padding:20px 24px;background:#171817f5;border:2px solid #9b8060;box-shadow:0 0 0 4px #101111,6px 6px #080909;color:#eee4d5;font-family:monospace}
 .prologue-box small{color:#c09b73;letter-spacing:.15em}
-.prologue-box h2{margin:10px 0;font-size:22px}
-.prologue-box p{min-height:3em;margin:0 0 16px;line-height:1.9;font-size:15px}
+.dialogue-layout{display:grid;grid-template-columns:150px minmax(0,1fr);gap:18px;align-items:center;margin:10px 0 16px}
+.dialogue-portrait{display:block;width:150px;height:180px;object-fit:contain;image-rendering:pixelated;background:linear-gradient(180deg,#2a292b,#1b1a1d);border:1px solid #574a41}
+.prologue-box h2{margin:0 0 10px;font-size:22px}
+.prologue-box p{min-height:3em;margin:0;line-height:1.9;font-size:15px;white-space:pre-line}
 .prologue-box button{position:relative;right:auto;display:block;width:max-content;max-width:100%;min-width:112px;margin-left:auto}
 @media(max-width:720px){
  .touch-pad{display:none!important}
@@ -77,6 +82,8 @@ body{background:#17191b}
  .field-action{left:auto!important;right:16px!important;bottom:28px!important}
  .prologue-overlay{padding:12px;padding-bottom:max(12px,env(safe-area-inset-bottom))}
  .prologue-box{padding:15px 16px}
- .prologue-box h2{font-size:18px}
- .prologue-box p{font-size:13px;line-height:1.8}
+ .dialogue-layout{grid-template-columns:88px minmax(0,1fr);gap:10px}
+ .dialogue-portrait{width:88px;height:112px}
+ .prologue-box h2{font-size:16px}
+ .prologue-box p{font-size:12px;line-height:1.7}
 }
