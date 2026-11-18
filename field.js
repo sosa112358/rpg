@@ -11,6 +11,10 @@
   field.className = 'adventure';
   field.innerHTML = '<div class="world-frame"><canvas id="world" aria-label="星見の丘を歩くドット絵2Dフィールド"></canvas><span class="world-location">星見の丘　—　夜</span><div id="worldMessage" class="world-message">WASD / 矢印キーで歩く。青い旅人や宝箱の近くで Space。</div></div><div class="field-toolbar"><div class="field-legend"><span>主人公</span><span>旅人</span><span>宝箱</span></div><div class="touch-pad" aria-label="移動操作"><button data-move="up" aria-label="上へ">▲</button><button data-move="left" aria-label="左へ">◀</button><button data-move="down" aria-label="下へ">▼</button><button data-move="right" aria-label="右へ">▶</button></div><button id="fieldAction" class="primary field-action">調べる <span>Space</span></button></div>';
   hero.after(field);
+  hero.remove();
+  const worldFrame = field.querySelector('.world-frame');
+  const resourceHud = document.querySelector('.resources');
+  if (resourceHud) worldFrame.append(resourceHud);
   // Keep exploration, story, battle, and summons on one persistent game screen.
   const dashboard = document.createElement('div');
   dashboard.className = 'game-dashboard';
@@ -91,15 +95,16 @@
   const summoner = {x: 1110, y: 840};
   const pond = {x: 265, y: 875, rx: 200, ry: 115};
   const held = new Set();
-  const trees = [];
-  let storyMet = false, storyComplete = false, summonMet = false, slimeMet = false, battleWon = false;
-  for (let y = 80; y < WORLD_H - 40; y += 125) for (let x = 55; x < WORLD_W - 40; x += 135) {
-    const n = (x * 17 + y * 29) % 101;
-    if (n < 52 || x < 280 || x > 1500 || y < 180 || y > 980) {
-      const tx = x + (n % 37), ty = y + ((n * 3) % 29);
-      if (Math.abs(tx - 570) > 140 && Math.abs(ty - 590) > 120 && Math.abs(tx - traveler.x) > 90 && Math.abs(ty - traveler.y) > 90 && Math.abs(tx - chest.x) > 90 && Math.abs(ty - chest.y) > 90 && Math.abs(tx-village.x)>115 && Math.abs(ty-village.y)>115 && Math.abs(tx-summoner.x)>100 && Math.abs(ty-summoner.y)>100) trees.push({x:tx,y:ty});
-    }
-  }
+  // Hand-placed tree groups frame the paths and landmarks.
+  const trees = [
+    {x:115,y:310},{x:185,y:285},{x:265,y:325},{x:345,y:295},{x:440,y:330},
+    {x:130,y:420},{x:220,y:455},{x:315,y:410},{x:405,y:470},
+    {x:1530,y:300},{x:1620,y:335},{x:1710,y:290},{x:1570,y:430},{x:1690,y:455},
+    {x:160,y:730},{x:120,y:825},{x:360,y:1010},{x:465,y:960},
+    {x:900,y:310},{x:985,y:330},{x:1260,y:310},{x:1370,y:350},
+    {x:1450,y:680},{x:1550,y:740},{x:1680,y:690},{x:1420,y:920},{x:1570,y:1010},
+    {x:760,y:1030},{x:875,y:1080},{x:1010,y:1030},{x:1280,y:1040}
+  ];
   const keyMap = {ArrowUp:'up',w:'up',W:'up',ArrowDown:'down',s:'down',S:'down',ArrowLeft:'left',a:'left',A:'left',ArrowRight:'right',d:'right',D:'right'};
   window.addEventListener('keydown', e => {
     if (encounterOverlay.classList.contains('visible')) { if (e.key === 'Escape') encounterOverlay.classList.remove('visible'); return; }
@@ -198,28 +203,44 @@
     ctx.setTransform(.5,0,0,.5,0,0);
     ctx.clearRect(0,0,W,H);
     ctx.save();ctx.translate(-camX,-camY);
-    block(0,0,WORLD_W,WORLD_H,'#386247');
-    for(let y=0;y<WORLD_H;y+=TILE)for(let x=0;x<WORLD_W;x+=TILE){
-      const v=(x*31+y*19)%17;
-      if(v<5)block(x+(v%4)*8,y+((v*7)%5)*7,5,5,v===0?'#77a45d':'#4d8052');
-      else if(v===9)block(x+18,y+28,3,3,'#a2af64');
-    }
-    const road=[
-      {x:80,y:600},{x:330,y:570},{x:450,y:670},{x:670,y:630},
-      {x:820,y:610},{x:840,y:520},{x:1040,y:540},{x:1280,y:565},
-      {x:1390,y:450},{x:1730,y:390}
+    // Meadow base with quiet, deliberately grouped grass marks.
+    block(0,0,WORLD_W,WORLD_H,'#55784c');
+    const meadowPatches = [
+      [70,260,350,190,'#5d8051'],[420,250,320,145,'#4e7148'],[780,245,330,175,'#5d8051'],
+      [1190,245,270,190,'#4f7048'],[80,500,300,175,'#4f7149'],[440,760,250,180,'#5e8050'],
+      [800,850,300,150,'#4f7149'],[1250,540,210,175,'#5e8050'],[1190,900,260,160,'#4f7149']
     ];
+    meadowPatches.forEach(([x,y,w,h,c])=>block(x,y,w,h,c));
+    // A worn earth lane, laid in broad bends with pale wheel-worn edges.
+    const road=[{x:65,y:610},{x:270,y:595},{x:425,y:630},{x:585,y:640},{x:760,y:620},{x:825,y:555},{x:1010,y:560},{x:1170,y:620},{x:1320,y:585},{x:1435,y:485},{x:1730,y:430}];
     for(let i=1;i<road.length;i++){
-      const a=road[i-1],b=road[i],steps=Math.ceil(Math.hypot(b.x-a.x,b.y-a.y)/45);
-      for(let j=0;j<=steps;j++){const t=j/steps,x=Math.round((a.x+(b.x-a.x)*t)/50)*50,y=Math.round((a.y+(b.y-a.y)*t)/50)*50;block(x-58,y-43,116,86,'#ab8c58');block(x-43,y-31,86,62,'#cfb77b');}
+      const a=road[i-1],b=road[i],steps=Math.ceil(Math.hypot(b.x-a.x,b.y-a.y)/34);
+      for(let j=0;j<=steps;j++){
+        const t=j/steps,x=Math.round((a.x+(b.x-a.x)*t)/25)*25,y=Math.round((a.y+(b.y-a.y)*t)/25)*25;
+        block(x-44,y-28,92,58,'#9a8053');block(x-38,y-24,78,48,'#b69a67');
+        if((i+j)%3===0) block(x-15+(j%4)*8,y-4,7,5,'#c4aa78');
+      }
     }
-    // Rocky ridge and a clear blue pond make the field feel like a place, not a green plane.
-    for(let x=100;x<1700;x+=190){const peak=245+(x%4)*12;block(x,peak+62,170,95,'#59656a');block(x+20,peak+28,130,60,'#707b7c');block(x+45,peak,80,55,'#8f9993');block(x+65,peak+2,38,26,'#e2dfcc');block(x+52,peak+26,25,19,'#d5d8cb')}
-    for(let y=pond.y-pond.ry-30;y<pond.y+pond.ry+30;y+=25)for(let x=pond.x-pond.rx-30;x<pond.x+pond.rx+30;x+=25){const nx=(x-pond.x)/pond.rx,ny=(y-pond.y)/pond.ry,d=nx*nx+ny*ny;if(d<1.2){block(x,y,26,26,d<.82?((x+y)%3?'#286e82':'#347f91'):((x+y)%2?'#c3ad72':'#d3c082'));if(d<.82&&((x+y)%5===0))block(x+8,y+8,8,3,'#77bdac')}}
-    trees.forEach(t=>drawTree(t.x,t.y));
-    for(let x=280;x<1480;x+=48){if((x>490&&x<660)||(x>920&&x<1100))continue;block(x,210+(x%3)*3,43,24,'#686d68');block(x+5,213+(x%3)*3,32,7,'#92958a');}
+    // A low, irregular ridge sits beyond the meadow rather than repeating across the horizon.
+    [[65,255,170,92],[205,220,205,122],[390,265,170,88],[1260,260,210,95],[1450,225,175,125],[1600,280,160,84]].forEach(([x,y,w,h],i)=>{
+      block(x,y+25,w,h,'#465a50');block(x+18,y,w-35,h-18,i%2?'#657769':'#70806d');
+      block(x+48,y+13,w-95,h-42,'#87907a');block(x+65,y+17,32,9,'#b3ad8b');
+    });
+    // Pond with a grassy bank, shallow shore and a small timber landing.
+    ctx.fillStyle='#8c8158';ctx.beginPath();ctx.ellipse(pond.x,pond.y,pond.rx+22,pond.ry+17,-.12,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#b3a16b';ctx.beginPath();ctx.ellipse(pond.x,pond.y,pond.rx+7,pond.ry+5,-.12,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#397b83';ctx.beginPath();ctx.ellipse(pond.x,pond.y,pond.rx-7,pond.ry-9,-.12,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#4d9290';ctx.beginPath();ctx.ellipse(pond.x-28,pond.y-24,88,34,-.3,0,Math.PI*2);ctx.fill();
+    [[155,850],[198,916],[327,814],[358,886],[245,955]].forEach(([x,y])=>block(x,y,16,5,'#d3c282'));
+    block(395,865,92,20,'#74583b');block(403,858,78,10,'#b08a56');
+    for(let x=405;x<480;x+=18)block(x,858,4,28,'#604d37');
+    // Scattered hand-placed stones along the northern boundary.
+    [[275,207],[326,213],[378,204],[430,210],[470,206],[665,208],[712,203],[760,211],[1125,209],[1185,204],[1238,211],[1300,205],[1352,212],[1410,206]].forEach(([x,y],i)=>{
+      block(x,y,34,18,'#555f56');block(x+4,y+2,25,6,'#85877a');if(i%2===0)block(x+18,y+10,9,4,'#a09d88');
+    });
     drawInn();
-    for(let i=0;i<44;i++){const fx=95+(i*173)%1580,fy=320+(i*97)%720;if(Math.hypot(fx-player.x,fy-player.y)>95&&Math.hypot(fx-village.x,fy-village.y)>110){block(fx,fy,5,5,['#f2d17c','#f2e5c0','#c9a8d8'][i%3]);block(fx+5,fy+4,3,4,'#376947')}}
+    const flowers=[[515,520],[535,535],[554,514],[585,545],[610,530],[720,760],[742,748],[765,770],[785,752],[880,470],[901,480],[923,462],[950,485],[1040,780],[1060,798],[1083,779],[1102,792],[1360,770],[1382,786],[1405,765],[495,880],[515,895],[540,876]];
+    flowers.forEach(([x,y],i)=>{block(x,y,5,5,i%3===0?'#f2d17c':i%3===1?'#f2e5c0':'#c9a8d8');block(x+4,y+4,3,4,'#376947')});
     const objects=[
       {y:chest.y,draw:drawChest},
       {y:traveler.y,draw:()=>drawPerson(traveler.x,traveler.y,'traveler','down',0,'村人')},
