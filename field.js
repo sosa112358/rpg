@@ -7,6 +7,42 @@
   field.className = 'adventure';
   field.innerHTML = '<div class="world-frame"><canvas id="world" aria-label="星見の丘を歩くドット絵2Dフィールド"></canvas><span class="world-location">星見の丘　—　夜</span><div id="worldMessage" class="world-message">WASD / 矢印キーで歩く。青い旅人や宝箱の近くで Space。</div></div><div class="field-toolbar"><div class="field-legend"><span>主人公</span><span>旅人</span><span>宝箱</span></div><div class="touch-pad" aria-label="移動操作"><button data-move="up" aria-label="上へ">▲</button><button data-move="left" aria-label="左へ">◀</button><button data-move="down" aria-label="下へ">▼</button><button data-move="right" aria-label="右へ">▶</button></div><button id="fieldAction" class="primary field-action">調べる <span>Space</span></button></div>';
   hero.after(field);
+  // Keep exploration, story, battle, and summons on one persistent game screen.
+  const dashboard = document.createElement('div');
+  dashboard.className = 'game-dashboard';
+  field.after(dashboard);
+  dashboard.append(field);
+  const panel = document.createElement('aside');
+  panel.className = 'quick-panel';
+  panel.innerHTML = '<div class="quick-tabs"><button data-quick="story" class="active">物語</button><button data-quick="battle">戦闘</button><button data-quick="gacha">召喚</button></div><div class="quick-content"><section class="quick-pane" id="quick-story"></section><section class="quick-pane" id="quick-battle"></section><section class="quick-pane" id="quick-gacha"></section></div>';
+  dashboard.append(panel);
+  const storySection = document.querySelector('#story');
+  const gachaSection = document.querySelector('#gacha');
+  const battleSection = document.querySelector('#battle');
+  document.querySelector('#quick-story').append(storySection.querySelector('.story-card'));
+  document.querySelector('#quick-gacha').append(gachaSection.querySelector('.banner'), gachaSection.querySelector('.summon-actions'), gachaSection.querySelector('#roster'));
+  document.querySelector('#quick-battle').append(battleSection.querySelector('.battle-head'), battleSection.querySelector('.battlefield'), battleSection.querySelector('.battle-bottom'));
+  storySection.remove(); gachaSection.remove(); battleSection.remove();
+  document.querySelector('.home-lower')?.remove();
+  const quickPanes = [...document.querySelectorAll('.quick-pane')];
+  function selectQuick(id) {
+    const chosen = id === 'gacha' ? 'gacha' : id === 'battle' ? 'battle' : 'story';
+    quickPanes.forEach(p => p.classList.toggle('active', p.id === 'quick-' + chosen));
+    document.querySelectorAll('[data-quick]').forEach(b => b.classList.toggle('active', b.dataset.quick === chosen));
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.screen === chosen));
+    if (chosen === 'battle' && !battle.started) startBattle();
+  }
+  document.querySelectorAll('[data-quick]').forEach(b => b.addEventListener('click', () => selectQuick(b.dataset.quick)));
+  // Existing navigation and story transitions now switch the in-screen panel only.
+  setScreen = id => selectQuick(id);
+  document.querySelectorAll('.nav-item').forEach(b => {
+    b.textContent = b.dataset.screen === 'battle' ? '戦闘' : b.dataset.screen === 'gacha' ? '召喚' : b.dataset.screen === 'story' ? '物語' : '世界';
+    const icon = document.createElement('span');
+    icon.textContent = b.dataset.screen === 'battle' ? '⚔' : b.dataset.screen === 'gacha' ? '✧' : b.dataset.screen === 'story' ? '▤' : '⌖';
+    b.prepend(icon);
+    b.classList.toggle('active', b.dataset.screen === 'story');
+  });
+  selectQuick('story');
   const storyHero = document.querySelector('.scene-person');
   storyHero.classList.add('protagonist-art');
   storyHero.textContent = '';
