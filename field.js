@@ -295,6 +295,12 @@
     else say('\u7070\u306b\u8986\u308f\u308c\u305f\u907a\u8de1\u3060\u3002\u8db3\u5143\u306b\u6c17\u3092\u3064\u3051\u3066\u9032\u3082\u3046\u3002');
   }
   let messageTimer;
+  function say(text) {
+    message.textContent=text;
+    message.classList.add('visible');
+    clearTimeout(messageTimer);
+    messageTimer=setTimeout(()=>message.classList.remove('visible'),3600);
+  }
   message.textContent = '\u53e4\u4ee3\u907a\u8de1\u3067\u76ee\u3092\u899a\u307e\u3057\u305f\u3002\u30ea\u30ea\u30a2\u306b\u8fd1\u3065\u3044\u3066\u8a71\u3092\u805e\u3053\u3046\u3002';
   function block(x,y,w,h,color) { ctx.fillStyle=color; ctx.fillRect(Math.round(x),Math.round(y),w,h); }
   function drawTree(x,y) {
