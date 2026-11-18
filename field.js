@@ -3,6 +3,10 @@
   const hero = home.querySelector('.hero');
   hero.className = 'field-heading';
   hero.innerHTML = '<div><p class="eyebrow">CHAPTER 01 ・ 星見の丘</p><h1>フィールド</h1><p>歩いて、旅人に話しかけて、宝箱を見つけよう。</p></div><div class="field-help">移動　W A S D / 矢印キー　　調べる　Space</div>';
+  hero.querySelector('.eyebrow').textContent = 'CHAPTER 01 ・ 星見の丘';
+  hero.querySelector('h1').textContent = '星見の丘';
+  hero.querySelector('p:not(.eyebrow)').textContent = '村人と話し、森を歩き、星の物語を見つけよう。';
+  hero.querySelector('.field-help').textContent = '移動: WASD / 矢印キー　会話: Space';
   const field = document.createElement('section');
   field.className = 'adventure';
   field.innerHTML = '<div class="world-frame"><canvas id="world" aria-label="星見の丘を歩くドット絵2Dフィールド"></canvas><span class="world-location">星見の丘　—　夜</span><div id="worldMessage" class="world-message">WASD / 矢印キーで歩く。青い旅人や宝箱の近くで Space。</div></div><div class="field-toolbar"><div class="field-legend"><span>主人公</span><span>旅人</span><span>宝箱</span></div><div class="touch-pad" aria-label="移動操作"><button data-move="up" aria-label="上へ">▲</button><button data-move="left" aria-label="左へ">◀</button><button data-move="down" aria-label="下へ">▼</button><button data-move="right" aria-label="右へ">▶</button></div><button id="fieldAction" class="primary field-action">調べる <span>Space</span></button></div>';
@@ -25,11 +29,19 @@
   storySection.remove(); gachaSection.remove(); battleSection.remove();
   document.querySelector('.home-lower')?.remove();
   const quickPanes = [...document.querySelectorAll('.quick-pane')];
-  function selectQuick(id) {
+  const encounterOverlay = document.createElement('div');
+  encounterOverlay.className = 'encounter-overlay';
+  encounterOverlay.innerHTML = '<section class="encounter-window"><button class="encounter-close" type="button">× 閉じる</button><div class="encounter-body"></div></section>';
+  home.append(encounterOverlay);
+  const encounterBody = encounterOverlay.querySelector('.encounter-body');
+  quickPanes.forEach(p => encounterBody.append(p));
+  encounterOverlay.addEventListener('click', e => { if (e.target === encounterOverlay || e.target.closest('.encounter-close')) encounterOverlay.classList.remove('visible'); });
+  function selectQuick(id, open = true) {
     const chosen = id === 'gacha' ? 'gacha' : id === 'battle' ? 'battle' : 'story';
     quickPanes.forEach(p => p.classList.toggle('active', p.id === 'quick-' + chosen));
     document.querySelectorAll('[data-quick]').forEach(b => b.classList.toggle('active', b.dataset.quick === chosen));
     document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.screen === chosen));
+    if (open) encounterOverlay.classList.add('visible');
     if (chosen === 'battle' && !battle.started) startBattle();
   }
   document.querySelectorAll('[data-quick]').forEach(b => b.addEventListener('click', () => selectQuick(b.dataset.quick)));
@@ -42,16 +54,11 @@
     b.prepend(icon);
     b.classList.toggle('active', b.dataset.screen === 'story');
   });
-  selectQuick('story');
-  const storyHero = document.querySelector('.scene-person');
-  storyHero.classList.add('protagonist-art');
-  storyHero.textContent = '';
-  const homeNav = document.querySelector('.nav-item[data-screen="home"]');
-  homeNav.innerHTML = '<span>⌖</span>フィールド';
-
+  selectQuick('story', false);
   const canvas = document.querySelector('#world');
   const ctx = canvas.getContext('2d');
   const message = document.querySelector('#worldMessage');
+  message.textContent = '村人や召喚師の近くで Space。魔物に近づくと戦闘開始。';
   const W = 1200, H = 675, WORLD_W = 1800, WORLD_H = 1200, TILE = 50;
   canvas.width = 600;
   canvas.height = 338;
@@ -65,6 +72,7 @@
   const chest = {x: 760, y: 730, opened: false};
   const slime = {x: 1280, y: 480};
   const village = {x: 1160, y: 770};
+  const summoner = {x: 1290, y: 835};
   const pond = {x: 265, y: 875, rx: 200, ry: 115};
   const held = new Set();
   const trees = [];
@@ -72,11 +80,12 @@
     const n = (x * 17 + y * 29) % 101;
     if (n < 52 || x < 280 || x > 1500 || y < 180 || y > 980) {
       const tx = x + (n % 37), ty = y + ((n * 3) % 29);
-      if (Math.abs(tx - 570) > 140 && Math.abs(ty - 590) > 120 && Math.abs(tx - traveler.x) > 90 && Math.abs(ty - traveler.y) > 90 && Math.abs(tx - chest.x) > 90 && Math.abs(ty - chest.y) > 90) trees.push({x:tx,y:ty});
+      if (Math.abs(tx - 570) > 140 && Math.abs(ty - 590) > 120 && Math.abs(tx - traveler.x) > 90 && Math.abs(ty - traveler.y) > 90 && Math.abs(tx - chest.x) > 90 && Math.abs(ty - chest.y) > 90 && Math.abs(tx-village.x)>115 && Math.abs(ty-village.y)>115 && Math.abs(tx-summoner.x)>100 && Math.abs(ty-summoner.y)>100) trees.push({x:tx,y:ty});
     }
   }
   const keyMap = {ArrowUp:'up',w:'up',W:'up',ArrowDown:'down',s:'down',S:'down',ArrowLeft:'left',a:'left',A:'left',ArrowRight:'right',d:'right',D:'right'};
   window.addEventListener('keydown', e => {
+    if (encounterOverlay.classList.contains('visible')) { if (e.key === 'Escape') encounterOverlay.classList.remove('visible'); return; }
     if (keyMap[e.key]) { held.add(keyMap[e.key]); e.preventDefault(); }
     if (e.key === ' ' || e.key === 'e' || e.key === 'E' || e.key === 'Enter') { e.preventDefault(); interact(); }
   });
@@ -93,8 +102,9 @@
     if (near(chest, 105)) {
       if (!chest.opened) { chest.opened = true; if (typeof save !== 'undefined') { save.crystals += 30; saveGame(); } say('宝箱を開けた！ 星のかけらを30個手に入れた。'); }
       else say('宝箱は空っぽだ。');
-    } else if (near(traveler, 110)) say('旅人「森の向こうに魔物がいる。準備はいい？」');
-    else if (near(slime, 110)) { say('森のスライムが道をふさいでいる！ バトル開始。'); setTimeout(() => setScreen('battle'), 550); }
+    } else if (near(traveler, 110)) { say('村人が手招きしている。'); setScreen('story'); }
+    else if (near(summoner, 115)) { say('村の召喚師が星霊召喚を案内している。'); setScreen('gacha'); }
+    else if (near(slime, 110)) { say('森のスライムが襲いかかってきた！'); setTimeout(() => setScreen('battle'), 300); }
     else say('夜空には、まだ見ぬ星が輝いている。');
   }
   let messageTimer;
@@ -113,7 +123,9 @@
     const bob = step ? Math.sin(step) * 2 : 0;
     const colors = kind === 'traveler'
       ? {body:'#39718a',light:'#85c9d4',head:'#e4c4a0',hair:'#39475d',boots:'#3a3543'}
-      : {body:'#5c9b4e',light:'#a1d36b',head:'#bfe98b',hair:'#538c42',boots:'#3c4936'};
+      : kind === 'summoner'
+        ? {body:'#744d75',light:'#d19ab9',head:'#f0cfb0',hair:'#5b3c5a',boots:'#433143'}
+        : {body:'#5c9b4e',light:'#a1d36b',head:'#bfe98b',hair:'#538c42',boots:'#3c4936'};
     block(x-13,y-1+bob,26,20,colors.body);
     block(x-17,y-13+bob,34,11,colors.light);
     block(x-9,y-27+bob,18,14,colors.head);
@@ -193,11 +205,12 @@
     const objects=[
       {y:chest.y,draw:drawChest},
       {y:traveler.y,draw:()=>drawPerson(traveler.x,traveler.y,'traveler','down',0,'旅人')},
+      {y:summoner.y,draw:()=>drawPerson(summoner.x,summoner.y,'summoner','down',0,'召喚師')},
       {y:slime.y,draw:()=>drawPerson(slime.x,slime.y,'slime','down',0,'')},
       {y:player.y,draw:drawHero}
     ];
     objects.sort((a,b)=>a.y-b.y).forEach(o=>o.draw());
-    const nearby=[chest,traveler,slime].find(o=>Math.hypot(player.x-o.x,player.y-o.y)<100);
+    const nearby=[chest,traveler,summoner,slime].find(o=>Math.hypot(player.x-o.x,player.y-o.y)<100);
     if(nearby){block(player.x-4,player.y-112,8,5,'#f4d483');block(player.x-10,player.y-107,20,4,'#f4d483')}
     ctx.restore();
   }
