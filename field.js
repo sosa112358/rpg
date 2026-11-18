@@ -42,6 +42,48 @@
   const encounterBody = encounterOverlay.querySelector('.encounter-body');
   quickPanes.forEach(p => encounterBody.append(p));
   encounterOverlay.addEventListener('click', e => { if (e.target === encounterOverlay || e.target.closest('.encounter-close')) encounterOverlay.classList.remove('visible'); });
+  const prologue = document.createElement('div');
+  prologue.className = 'prologue-overlay visible';
+  prologue.innerHTML = '<section class="prologue-box"><small>PROLOGUE / NAMELESS SWORDSMAN</small><h2></h2><p></p><button type="button" class="primary">次へ <span>▶</span></button></section>';
+  home.append(prologue);
+  const opening = [
+    ['名もなき剣士', '冷たい石床の上で、あなたは目を覚ました。手には見覚えのない黒い剣。自分の名前も、ここへ来た理由も思い出せない。'],
+    ['遺跡の少女', '「……やっと目覚めたんだね」少女はリリアと名乗った。地上では、太陽が黒く染まった災厄『灰の夜』から、すでに300年が過ぎていた。'],
+    ['灰喰い', '「あなたは、この世界を滅ぼした存在を倒すために作られた剣士なの」その言葉を遮るように石扉が砕け、魔物が遺跡へなだれ込んだ。黒い剣を握り、戦いに備えよう。']
+  ];
+  let openingIndex = 0;
+  const showOpening = () => {
+    prologue.querySelector('h2').textContent = opening[openingIndex][0];
+    prologue.querySelector('p').textContent = opening[openingIndex][1];
+    prologue.querySelector('button').innerHTML = openingIndex === opening.length - 1 ? '遺跡を進む <span>▶</span>' : '次へ <span>▶</span>';
+  };
+  showOpening();
+  prologue.querySelector('button').addEventListener('click', () => {
+    if (++openingIndex < opening.length) showOpening();
+    else {
+      prologue.classList.remove('visible');
+      storyMet = true;
+      setObjective('リリアに話しかけ、遺跡の出口を探そう');
+      say('リリア「立てる？ この先に出口がある。でも、魔物が近くまで来ているみたい……」');
+    }
+  });
+  const joystick = document.createElement('div');
+  joystick.className = 'mobile-joystick'; joystick.setAttribute('aria-label', 'スティックで移動');
+  joystick.innerHTML = '<span class="joystick-base"></span><span class="joystick-knob"></span>';
+  field.querySelector('.touch-pad').after(joystick);
+  const joystickKnob = joystick.querySelector('.joystick-knob');
+  const joystickState = {x:0,y:0,pointer:null};
+  const resetJoystick = () => { joystickState.x=0; joystickState.y=0; joystickState.pointer=null; joystickKnob.style.transform='translate(-50%,-50%)'; };
+  joystick.addEventListener('pointerdown', e => { e.preventDefault(); joystickState.pointer=e.pointerId; joystick.setPointerCapture(e.pointerId); moveJoystick(e); });
+  joystick.addEventListener('pointermove', e => { if(joystickState.pointer===e.pointerId) moveJoystick(e); });
+  joystick.addEventListener('pointerup', resetJoystick);
+  joystick.addEventListener('pointercancel', resetJoystick);
+  function moveJoystick(e) {
+    const rect=joystick.getBoundingClientRect(), radius=rect.width*.34;
+    const dx=e.clientX-(rect.left+rect.width/2), dy=e.clientY-(rect.top+rect.height/2), distance=Math.hypot(dx,dy), scale=distance>radius?radius/distance:1;
+    joystickState.x=dx*scale/radius; joystickState.y=dy*scale/radius;
+    joystickKnob.style.transform=`translate(calc(-50% + ${dx*scale}px),calc(-50% + ${dy*scale}px))`;
+  }
   function selectQuick(id, open = true) {
     const chosen = id === 'gacha' ? 'gacha' : id === 'battle' ? 'battle' : 'story';
     quickPanes.forEach(p => p.classList.toggle('active', p.id === 'quick-' + chosen));
@@ -123,12 +165,14 @@
   window.addEventListener('rpg-summoned', () => { setObjective('\u6751\u306f\u305a\u308c\u306e\u5b9d\u7bb1\u304b\u3089\u53e4\u6587\u66f8\u3092\u63a2\u305d\u3046'); });
   const keyMap = {ArrowUp:'up',w:'up',W:'up',ArrowDown:'down',s:'down',S:'down',ArrowLeft:'left',a:'left',A:'left',ArrowRight:'right',d:'right',D:'right'};
   window.addEventListener('keydown', e => {
+    if (prologue.classList.contains('visible')) { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); prologue.querySelector('button').click(); } return; }
     if (encounterOverlay.classList.contains('visible')) { if (e.key === 'Escape') encounterOverlay.classList.remove('visible'); return; }
     if (keyMap[e.key]) { held.add(keyMap[e.key]); e.preventDefault(); }
     if (e.key === ' ' || e.key === 'e' || e.key === 'E' || e.key === 'Enter') { e.preventDefault(); interact(); }
   });
   window.addEventListener('keyup', e => { if (keyMap[e.key]) held.delete(keyMap[e.key]); });
   window.addEventListener('blur', () => held.clear());
+  window.addEventListener('pointerup', e => { if(joystickState.pointer===e.pointerId) resetJoystick(); });
   document.querySelectorAll('[data-move]').forEach(button => {
     const dir = button.dataset.move;
     button.addEventListener('pointerdown', e => { e.preventDefault(); button.setPointerCapture(e.pointerId); held.add(dir); });
@@ -312,13 +356,14 @@
   let last=0;
   function loop(now){
     const dt=Math.min((now-last)/16.67,2);last=now;
-    let dx=0,dy=0;if(held.has('up'))dy--;if(held.has('down'))dy++;if(held.has('left'))dx--;if(held.has('right'))dx++;
+    let dx=joystickState.x,dy=joystickState.y;if(held.has('up'))dy--;if(held.has('down'))dy++;if(held.has('left'))dx--;if(held.has('right'))dx++;
     player.moving=Boolean(dx||dy);
     if(player.moving){
       const mag=Math.hypot(dx,dy);dx/=mag;dy/=mag;
       const nx=player.x+dx*3.2*dt,ny=player.y+dy*3.2*dt;
-      const blocked=trees.some(t=>Math.hypot(nx-t.x,ny-t.y)<42) || (Math.abs(nx-village.x)<66&&ny>village.y-83&&ny<village.y+36);
-      if(!blocked){player.x=Math.max(35,Math.min(WORLD_W-35,nx));player.y=Math.max(250,Math.min(WORLD_H-30,ny))}
+      const isBlocked=(x,y)=>trees.some(t=>Math.hypot(x-t.x,y-t.y)<42) || (Math.abs(x-village.x)<66&&y>village.y-83&&y<village.y+36);
+      if(!isBlocked(nx,player.y)) player.x=Math.max(35,Math.min(WORLD_W-35,nx));
+      if(!isBlocked(player.x,ny)) player.y=Math.max(250,Math.min(WORLD_H-30,ny));
       player.dir=Math.abs(dx)>Math.abs(dy)?(dx<0?'left':'right'):(dy<0?'up':'down');
       player.step+=.2*dt;
     }else player.step+=.035*dt;
