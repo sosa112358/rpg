@@ -202,6 +202,11 @@
   }, true);
   const canvas = document.querySelector('#world');
   const ctx = canvas.getContext('2d');
+  const minimap = document.createElement('canvas');
+  minimap.className = 'world-minimap'; minimap.width = 220; minimap.height = 142;
+  minimap.setAttribute('aria-label','現在地と目的地のミニマップ');
+  const miniCtx = minimap.getContext('2d');
+  document.querySelector('.world-frame').append(minimap);
   const message = document.querySelector('#worldMessage');
   const fieldAction = document.querySelector('#fieldAction');
   message.textContent = '\u53e4\u4ee3\u907a\u8de1\u3067\u76ee\u3092\u899a\u307e\u3057\u305f\u3002\u30ea\u30ea\u30a2\u306b\u8fd1\u3065\u3044\u3066\u8a71\u3092\u805e\u3053\u3046\u3002';
@@ -210,7 +215,7 @@
   objective.innerHTML = '<small>CHAPTER 01 / NEXT</small><strong>\u30ea\u30ea\u30a2\u304b\u3089\u8a71\u3092\u805e\u3053\u3046</strong>';
   document.querySelector('.world-frame').append(objective);
   function setObjective(text) { if (objective) objective.querySelector('strong').textContent = text; }
-  const W = 1200, H = 675, WORLD_W = 1800, WORLD_H = 1200, TILE = 50;
+  const W = 1200, H = 675, WORLD_W = 2800, WORLD_H = 1800, TILE = 50;
   canvas.width = 1200;
   canvas.height = 675;
   ctx.imageSmoothingEnabled = false;
@@ -452,12 +457,12 @@
       if(n===10)block(x+20,y+5,13,4,'#272a28');
     }
     // Packed earth road runs through the settlement to the shelter.
-    const road=[{x:0,y:610},{x:340,y:615},{x:690,y:590},{x:980,y:620},{x:1260,y:580},{x:1560,y:625},{x:1800,y:590}];
+    const road=[{x:0,y:610},{x:340,y:615},{x:690,y:590},{x:980,y:620},{x:1260,y:580},{x:1560,y:625},{x:2050,y:600},{x:2420,y:650},{x:2800,y:630}];
     for(const [color,width] of [['#292c29',106],['#706047',86],['#8a7650',66]]){
       ctx.beginPath();ctx.moveTo(road[0].x,road[0].y);road.slice(1).forEach(p=>ctx.lineTo(p.x,p.y));
       ctx.strokeStyle=color;ctx.lineWidth=width;ctx.lineCap='square';ctx.lineJoin='round';ctx.stroke();
     }
-    [[110,420,104,65],[420,445,132,74],[800,360,110,68],[1380,420,124,80],[1480,810,94,66]].forEach(([x,y,w,h],i)=>{
+    [[110,420,104,65],[420,445,132,74],[800,360,110,68],[1380,420,124,80],[1480,810,94,66],[1960,405,138,78],[2290,780,124,74],[2540,395,118,68]].forEach(([x,y,w,h],i)=>{
       block(x-5,y+h-9,w+10,12,'#292b28');block(x+5,y+4,w-10,h-7,i%2?'#574536':'#59483a');
       block(x-10,y+1,w+20,15,'#302b28');
       for(let px=x-4;px<x+w;px+=19)block(px,y+18,4,h-24,'#382f29');
@@ -469,18 +474,25 @@
       block(x,y,17,5,'#a45e3e');if(i%2===0)block(x+7,y-5,4,5,'#d18b4e');
     });
     // Charred trees have broken trunks and bare branches, unlike the ruin columns.
-    [[190,365],[350,845],[650,390],[920,890],[1270,455],[1580,735],[1710,345],[760,970]].forEach(([x,y],i)=>{
+    [[190,365],[350,845],[650,390],[920,890],[1270,455],[1580,735],[1710,345],[760,970],[1850,980],[2160,360],[2500,1040],[2690,450]].forEach(([x,y],i)=>{
       block(x-15,y+16,34,8,'#292925');block(x-5,y-23,12,43,'#342d27');
       block(x-15,y-15,12,5,'#44372d');block(x+5,y-8,15,5,'#44372d');
       block(x-19,y-20,8,4,'#39332b');if(i%2===0)block(x+8,y-17,8,4,'#3b332c');
     });
+    // A dry well, abandoned cart and ash-covered fields give the outskirts landmarks.
+    [[1880,720],[2360,930]].forEach(([x,y])=>{block(x-40,y+10,82,12,'#292a26');block(x-32,y-18,65,30,'#665744');block(x-25,y-12,51,20,'#262b28');block(x-35,y-24,72,7,'#927957');});
+    [[2050,1120],[2110,1120],[2170,1120],[2230,1120],[2290,1120]].forEach(([x,y],i)=>{block(x,y,11,37,i%2?'#756139':'#93804b');block(x+3,y-5,5,8,'#c4a75d');});
   }
   function draw() {
     const camX=Math.max(0,Math.min(WORLD_W-W,player.x-W/2)),camY=Math.max(0,Math.min(WORLD_H-H,player.y-H/2));
     ctx.setTransform(1,0,0,1,0,0);
     ctx.clearRect(0,0,W,H);
     ctx.save();ctx.translate(-camX,-camY);
-    if(battleWon) drawAshVillage(); else drawAncientRuin();
+    drawAshVillage();
+    ctx.save();ctx.beginPath();ctx.rect(0,250,900,WORLD_H-250);ctx.clip();drawAncientRuin();ctx.restore();
+    // The old processional road leaves the ruin gate and joins the village road.
+    ctx.beginPath();ctx.moveTo(635,320);ctx.lineTo(700,395);ctx.lineTo(835,470);ctx.lineTo(970,525);ctx.lineTo(1070,555);ctx.lineTo(1190,600);ctx.strokeStyle='#292c29';ctx.lineWidth=106;ctx.lineCap='square';ctx.lineJoin='round';ctx.stroke();
+    ctx.beginPath();ctx.moveTo(635,320);ctx.lineTo(700,395);ctx.lineTo(835,470);ctx.lineTo(970,525);ctx.lineTo(1070,555);ctx.lineTo(1190,600);ctx.strokeStyle='#806d48';ctx.lineWidth=66;ctx.lineCap='square';ctx.lineJoin='round';ctx.stroke();
     if(battleWon) drawInn();
     const objects=[
       {y:chest.y,draw:drawChest},
@@ -495,9 +507,41 @@
       {y:player.y,draw:drawHero},
     ];
     objects.sort((a,b)=>a.y-b.y).forEach(o=>o.draw());
+    const questTarget=getQuestTarget();
+    if(questTarget){
+      const pulse=5+Math.sin(performance.now()/170)*2;
+      ctx.fillStyle='#f5d87a';ctx.beginPath();ctx.arc(questTarget.x,questTarget.y-92,pulse+7,0,Math.PI*2);ctx.fill();
+      block(questTarget.x-2,questTarget.y-88,4,36,'#f5d87a');
+      ctx.fillStyle='#fff2b1';ctx.beginPath();ctx.moveTo(questTarget.x,questTarget.y-107);ctx.lineTo(questTarget.x+8,questTarget.y-96);ctx.lineTo(questTarget.x,questTarget.y-86);ctx.lineTo(questTarget.x-8,questTarget.y-96);ctx.closePath();ctx.fill();
+      ctx.font='bold 15px monospace';ctx.textAlign='center';ctx.lineWidth=4;ctx.strokeStyle='#1b211d';ctx.strokeText('目的地',questTarget.x,questTarget.y-116);ctx.fillStyle='#fff2b1';ctx.fillText('目的地',questTarget.x,questTarget.y-116);ctx.textAlign='start';
+    }
     const nearby=[chest,traveler,summoner,witness,elder,roadGuard,bellGuard,chapterBoss,slime,...clueSites.filter(o=>!o.found)].find(o=>Math.hypot(player.x-o.x,player.y-o.y)<110);
     if(nearby){block(player.x-4,player.y-112,8,5,'#f4d483');block(player.x-10,player.y-107,20,4,'#f4d483')}
-    ctx.restore();
+    ctx.restore();drawMinimap(camX,camY);
+  }
+  function getQuestTarget(){
+    if(chapterStage<=1)return traveler;
+    if(chapterStage===2||chapterStage===2.5)return slime;
+    if(chapterStage===3||chapterStage===4)return chapterStage===3?summoner:witness;
+    if(chapterStage===4.1)return clueSites.find(o=>!o.found)||witness;
+    if(chapterStage===4.2)return clueSites[pendingClue]||roadGuard;
+    if(chapterStage===5||chapterStage===5.5)return roadGuard;
+    if(chapterStage===6)return elder;
+    if(chapterStage===7)return chest;
+    if(chapterStage===8||chapterStage===8.2)return bellGuard;
+    if(chapterStage===8.5||chapterStage===9.5)return chapterBoss;
+    return null;
+  }
+  function drawMinimap(camX,camY){
+    const m=miniCtx,sx=minimap.width/WORLD_W,sy=minimap.height/WORLD_H;
+    m.clearRect(0,0,minimap.width,minimap.height);m.fillStyle='#242923';m.fillRect(0,0,minimap.width,minimap.height);
+    m.fillStyle='#41443a';m.fillRect(0,20,WORLD_W*sx,WORLD_H*sy);
+    m.fillStyle='#484239';m.fillRect(0,40,900*sx,(WORLD_H-40)*sy);
+    m.beginPath();m.moveTo(635*sx,320*sy);m.lineTo(700*sx,395*sy);m.lineTo(835*sx,470*sy);m.lineTo(970*sx,525*sy);m.lineTo(1190*sx,600*sy);m.lineTo(1500*sx,600*sy);m.lineTo(2050*sx,600*sy);m.lineTo(2420*sx,650*sy);m.lineTo(2800*sx,630*sy);m.strokeStyle='#a88a53';m.lineWidth=5;m.stroke();
+    m.fillStyle='#a88958';[[110,420],[420,445],[800,360],[1380,420],[1480,810],[1960,405],[2290,780],[2540,395]].forEach(([x,y])=>m.fillRect(x*sx,y*sy,7,6));
+    const target=getQuestTarget();if(target){m.fillStyle='#ffe273';m.beginPath();m.arc(target.x*sx,target.y*sy,4,0,Math.PI*2);m.fill();m.strokeStyle='#ffe273';m.lineWidth=1;m.beginPath();m.arc(target.x*sx,target.y*sy,7,0,Math.PI*2);m.stroke();}
+    m.strokeStyle='#d7e9c7';m.lineWidth=1.5;m.strokeRect(camX*sx,camY*sy,W*sx,H*sy);
+    m.fillStyle='#fff';m.beginPath();m.arc(player.x*sx,player.y*sy,3,0,Math.PI*2);m.fill();
   }
   let last=0;
   function loop(now){

@@ -8,6 +8,13 @@
 @media(max-width:720px){.shell{padding:0 8px;height:100dvh}.topbar{height:54px}.resources{gap:5px}.resources span{padding:5px 7px;font-size:10px}.icon-btn{width:30px;height:30px}.field-heading{padding:5px 0 7px}.field-heading h1{font-size:16px}.field-heading .eyebrow{font-size:8px}.field-heading p:not(.eyebrow){font-size:9px}.field-help{font-size:8px;padding:4px 6px}.game-dashboard>.adventure{height:100%}.world-frame{border-width:2px}.world-frame canvas{width:100%;height:100%;object-fit:cover}.touch-pad{grid-template-columns:repeat(3,38px);grid-template-rows:repeat(2,35px);right:4px;bottom:4px}.field-action{left:4px;bottom:6px;min-width:100px;padding:9px 8px!important}.field-action span{display:none}.world-location{top:6px;left:6px;padding:4px 7px;font-size:8px}.world-message{bottom:85px;font-size:10px}.encounter-overlay{padding:8px}.encounter-window{width:100%;max-height:88dvh}.encounter-body{padding:8px}.encounter-body .story-card{padding:9px;min-height:260px}.encounter-body .story-card h2{font-size:18px}.encounter-body .story-text{font-size:11px;line-height:1.8}.encounter-body .battlefield{height:180px}.encounter-body .battle-bottom{display:flex;flex-direction:column}.encounter-body .combat-log{min-height:54px}.encounter-body .banner{min-height:135px;padding:14px}.encounter-body .banner-char{font-size:85px}.encounter-body .summon-actions{gap:5px;padding:10px 0}.encounter-body .summon-actions button{padding:9px 6px;font-size:10px}}
 .quest-hud{position:absolute;z-index:2;top:12px;right:12px;display:flex;flex-direction:column;gap:4px;min-width:220px;padding:10px 14px;background:#15221ee8;border:2px solid #d1b16f;box-shadow:3px 3px #111722;color:#f6e9c7;font-family:monospace;pointer-events:none}.quest-hud small{font-size:9px;letter-spacing:.14em;color:#d5bd87}.quest-hud strong{font-size:13px;font-weight:600}.encounter-close{font-size:14px}.field-action{border:2px solid #e2c579!important;background:#253326!important;color:#fff0c9!important;box-shadow:3px 3px #111722!important}.field-action:hover{background:#3c5139!important}.touch-pad button{font-size:20px}.world-location{font-size:12px}
 @media(max-width:720px){.quest-hud{top:8px;right:8px;min-width:0;max-width:62%;padding:6px 8px;gap:2px}.quest-hud small{font-size:7px}.quest-hud strong{font-size:9px}.field-action{min-width:112px!important}}
+.world-minimap{position:absolute;z-index:4;top:66px;right:14px;width:220px;height:142px;border:2px solid #d3bc84;border-radius:4px;background:#18211ddd;box-shadow:3px 4px #101722b8;image-rendering:pixelated;pointer-events:none}
+.combatant.enemy{position:relative;cursor:pointer;user-select:none}
+.combatant.enemy.targeted{filter:drop-shadow(0 0 7px #ffe37c);transform:translateY(-7px)}
+.combatant.enemy.targeted::before{content:"▼";position:absolute;z-index:5;top:-20px;left:50%;transform:translateX(-50%);color:#ffe37c;font:16px monospace;text-shadow:1px 2px #241c11;animation:target-bob .55s ease-in-out infinite alternate}
+.encounter-overlay.battle-open .enemy-side::after{content:"敵をタップして攻撃対象を選択";position:absolute;left:0;top:-27px;padding:4px 7px;background:#111b;color:#fff0c9;border:1px solid #d3bc84;font:10px monospace;white-space:nowrap}
+@keyframes target-bob{to{translate:0 4px}}
+@media(max-width:720px){.world-minimap{top:64px;right:8px;width:150px;height:98px;border-width:1px}.combatant.enemy.targeted::before{top:-14px;font-size:12px}}
 /* Immersive game-only layout */
 body{min-height:100dvh;overflow:hidden;background:#17251e}
 .shell{width:100%;height:100dvh;max-width:none;margin:0;padding:0;overflow:hidden}
@@ -27,6 +34,8 @@ main{width:100%;height:100%;min-height:0;margin:0}
 .field-toolbar{inset:auto 14px 14px 14px}
 .touch-pad{right:0;bottom:0}
 .field-action{left:0;bottom:9px}
+.world-frame canvas.world-minimap{position:absolute;z-index:4;top:66px;right:14px;left:auto;bottom:auto;display:block;width:220px;height:142px;min-height:0;aspect-ratio:auto;object-fit:fill;border:2px solid #d3bc84;border-radius:4px;background:#18211ddd;box-shadow:3px 4px #101722b8;image-rendering:pixelated;pointer-events:none}
+@media(max-width:720px){.world-frame canvas.world-minimap{top:64px;right:8px;width:150px;height:98px;border-width:1px}}
 .encounter-overlay{z-index:10}
 @media(max-width:720px){
  .world-frame canvas{object-fit:cover}
