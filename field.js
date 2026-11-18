@@ -80,8 +80,8 @@
   document.querySelector('.world-frame').append(objective);
   function setObjective(text) { objective.querySelector('strong').textContent = text; }
   const W = 1200, H = 675, WORLD_W = 1800, WORLD_H = 1200, TILE = 50;
-  canvas.width = 600;
-  canvas.height = 338;
+  canvas.width = 1200;
+  canvas.height = 675;
   ctx.imageSmoothingEnabled = false;
   const spriteSheet = new Image();
   spriteSheet.src = 'assets/protagonist-sheet.png';
@@ -93,7 +93,7 @@
   const slime = {x: 1070, y: 545};
   const village = {x: 1160, y: 770};
   const summoner = {x: 1110, y: 840};
-  const pond = {x: 265, y: 875, rx: 200, ry: 115};
+  const pond = {x: 960, y: 635, rx: 142, ry: 600};
   const held = new Set();
   // Hand-placed tree groups frame the paths and landmarks.
   const trees = [
@@ -191,56 +191,70 @@
   }
   function drawInn() {
     const x=village.x,y=village.y;
-    block(x-66,y+22,132,16,'#354234');
-    block(x-55,y-54,110,78,'#c6b38a');
-    block(x-64,y-67,128,28,'#8e5148');block(x-48,y-83,96,22,'#aa6150');
-    block(x-15,y-26,30,50,'#59403a');block(x-45,y-37,20,18,'#79abc0');block(x+27,y-37,20,18,'#79abc0');
-    block(x-4,y-78,8,18,'#ead7aa');block(x+4,y-75,28,6,'#ddc28a');block(x+27,y-70,5,22,'#ddc28a');
-    block(x-17,y-12,34,4,'#ad9066');
+    // Timber inn with stone footing, beam-framed walls, tiled roof and shuttered windows.
+    block(x-78,y+28,156,12,'#3f503b');block(x-69,y+23,138,9,'#73624a');
+    block(x-62,y-50,124,74,'#d4bd83');block(x-62,y-50,124,9,'#76533a');
+    for(let px=x-50;px<x+58;px+=28){block(px,y-40,4,63,'#876342');block(px+5,y-4,17,4,'#c8ac72')}
+    block(x-73,y-68,146,29,'#704335');block(x-62,y-83,124,20,'#8d503d');
+    for(let px=x-61;px<x+62;px+=18){block(px,y-64,13,5,'#b46d4d');block(px+4,y-54,8,5,'#a55f46')}
+    block(x-18,y-31,36,57,'#4a362e');block(x-12,y-25,23,51,'#624438');block(x+10,y-5,3,3,'#e0bc70');
+    for(const wx of [x-49,x+30]){block(wx,y-34,21,22,'#583f32');block(wx+3,y-31,15,16,'#77aeb1');block(wx+9,y-31,3,16,'#d4c18c');block(wx+3,y-24,15,3,'#d4c18c');block(wx-4,y-36,5,25,'#986343');block(wx+20,y-36,5,25,'#986343')}
+    block(x-5,y-77,11,25,'#d8c99e');block(x+7,y-72,25,5,'#e1cb91');
+    block(x-86,y-25,19,26,'#694a34');block(x-90,y-31,27,8,'#9c6947');
+    block(x+65,y-5,9,31,'#684832');block(x+55,y-8,32,6,'#c8a264');
+    // Bright doorway and flower boxes make the inn easy to spot from the path.
+    block(x-7,y-19,14,15,'#e2b762');block(x-3,y-16,7,12,'#f1d487');
+    for(const bx of [x-51,x+32]){block(bx,y-6,24,5,'#80523d');block(bx+3,y-11,4,5,'#efb464');block(bx+10,y-13,4,7,'#eddf86');block(bx+17,y-9,4,6,'#f1a276')}
+    block(x-16,y+25,32,5,'#a78959');
   }
   function draw() {
     const camX=Math.max(0,Math.min(WORLD_W-W,player.x-W/2)),camY=Math.max(0,Math.min(WORLD_H-H,player.y-H/2));
-    ctx.setTransform(.5,0,0,.5,0,0);
+    ctx.setTransform(1,0,0,1,0,0);
     ctx.clearRect(0,0,W,H);
     ctx.save();ctx.translate(-camX,-camY);
-    // Meadow base with quiet, deliberately grouped grass marks.
-    block(0,0,WORLD_W,WORLD_H,'#55784c');
-    const meadowPatches = [
-      [70,260,350,190,'#5d8051'],[420,250,320,145,'#4e7148'],[780,245,330,175,'#5d8051'],
-      [1190,245,270,190,'#4f7048'],[80,500,300,175,'#4f7149'],[440,760,250,180,'#5e8050'],
-      [800,850,300,150,'#4f7149'],[1250,540,210,175,'#5e8050'],[1190,900,260,160,'#4f7149']
+    // Soft, varied meadow colors; foliage is placed in drifts, leaving room to walk.
+    block(0,0,WORLD_W,WORLD_H,'#65934e');
+    const meadowPatches=[
+      [0,260,330,210,'#6b9b54'],[360,240,250,140,'#5d874b'],[640,265,165,220,'#6d9a50'],
+      [1110,250,310,180,'#5b874a'],[0,500,290,170,'#5d8949'],[390,785,310,210,'#6c9a50'],
+      [690,820,185,250,'#5c8748'],[1100,900,330,190,'#6b984f'],[1390,530,240,185,'#5e894a']
     ];
     meadowPatches.forEach(([x,y,w,h,c])=>block(x,y,w,h,c));
-    // A worn earth lane, laid in broad bends with pale wheel-worn edges.
-    const road=[{x:65,y:610},{x:270,y:595},{x:425,y:630},{x:585,y:640},{x:760,y:620},{x:825,y:555},{x:1010,y:560},{x:1170,y:620},{x:1320,y:585},{x:1435,y:485},{x:1730,y:430}];
+    // Pebbled earth trail bends past the traveler and across a timber bridge.
+    const road=[{x:0,y:610},{x:235,y:590},{x:430,y:625},{x:630,y:632},{x:805,y:612},{x:900,y:612},{x:1030,y:612},{x:1180,y:638},{x:1350,y:600},{x:1510,y:505},{x:1800,y:470}];
     for(let i=1;i<road.length;i++){
-      const a=road[i-1],b=road[i],steps=Math.ceil(Math.hypot(b.x-a.x,b.y-a.y)/34);
+      const a=road[i-1],b=road[i],steps=Math.ceil(Math.hypot(b.x-a.x,b.y-a.y)/19);
       for(let j=0;j<=steps;j++){
-        const t=j/steps,x=Math.round((a.x+(b.x-a.x)*t)/25)*25,y=Math.round((a.y+(b.y-a.y)*t)/25)*25;
-        block(x-44,y-28,92,58,'#9a8053');block(x-38,y-24,78,48,'#b69a67');
-        if((i+j)%3===0) block(x-15+(j%4)*8,y-4,7,5,'#c4aa78');
+        const t=j/steps,x=Math.round((a.x+(b.x-a.x)*t)/12)*12,y=Math.round((a.y+(b.y-a.y)*t)/12)*12;
+        block(x-35,y-23,74,49,'#a98854');block(x-30,y-20,64,42,'#c2a466');
+        if((i+j)%2===0){block(x-19+(j%4)*8,y-5,6,4,'#d2b677');block(x+13,y+8,4,3,'#92764c')}
       }
     }
-    // A low, irregular ridge sits beyond the meadow rather than repeating across the horizon.
-    [[65,255,170,92],[205,220,205,122],[390,265,170,88],[1260,260,210,95],[1450,225,175,125],[1600,280,160,84]].forEach(([x,y,w,h],i)=>{
-      block(x,y+25,w,h,'#465a50');block(x+18,y,w-35,h-18,i%2?'#657769':'#70806d');
-      block(x+48,y+13,w-95,h-42,'#87907a');block(x+65,y+17,32,9,'#b3ad8b');
+    // Water channel, natural banks and reed beds; the bridge is a deliberate crossing.
+    ctx.fillStyle='#716f49';ctx.beginPath();ctx.ellipse(pond.x+8,pond.y,pond.rx+38,pond.ry+20,-.015,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#9e9a60';ctx.beginPath();ctx.ellipse(pond.x,pond.y,pond.rx+22,pond.ry+7,-.015,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#27958f';ctx.beginPath();ctx.ellipse(pond.x,pond.y,pond.rx,pond.ry,-.015,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#37aaa0';ctx.beginPath();ctx.ellipse(pond.x-15,pond.y-6,pond.rx-35,pond.ry-12,-.015,0,Math.PI*2);ctx.fill();
+    [[836,285],[1080,344],[827,435],[1087,492],[834,738],[1081,810],[845,955],[1078,1030]].forEach(([x,y],i)=>{
+      for(let n=0;n<5;n++){const rx=x+(i%2?1:-1)*n*7;block(rx,y+n*5,4,15,'#54804a');block(rx+3,y+n*5,3,12,'#b9b15e')}
     });
-    // Pond with a grassy bank, shallow shore and a small timber landing.
-    ctx.fillStyle='#8c8158';ctx.beginPath();ctx.ellipse(pond.x,pond.y,pond.rx+22,pond.ry+17,-.12,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#b3a16b';ctx.beginPath();ctx.ellipse(pond.x,pond.y,pond.rx+7,pond.ry+5,-.12,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#397b83';ctx.beginPath();ctx.ellipse(pond.x,pond.y,pond.rx-7,pond.ry-9,-.12,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#4d9290';ctx.beginPath();ctx.ellipse(pond.x-28,pond.y-24,88,34,-.3,0,Math.PI*2);ctx.fill();
-    [[155,850],[198,916],[327,814],[358,886],[245,955]].forEach(([x,y])=>block(x,y,16,5,'#d3c282'));
-    block(395,865,92,20,'#74583b');block(403,858,78,10,'#b08a56');
-    for(let x=405;x<480;x+=18)block(x,858,4,28,'#604d37');
-    // Scattered hand-placed stones along the northern boundary.
-    [[275,207],[326,213],[378,204],[430,210],[470,206],[665,208],[712,203],[760,211],[1125,209],[1185,204],[1238,211],[1300,205],[1352,212],[1410,206]].forEach(([x,y],i)=>{
-      block(x,y,34,18,'#555f56');block(x+4,y+2,25,6,'#85877a');if(i%2===0)block(x+18,y+10,9,4,'#a09d88');
+    // Bridge deck, plank seams, timber rails and stone approaches.
+    [[822,576],[1080,577]].forEach(([x,y])=>{block(x,y,18,48,'#81714c');block(x+2,y+2,13,9,'#b6a16c')});
+    block(816,574,288,72,'#684b36');block(824,579,272,60,'#9a6b43');
+    for(let x=830;x<1090;x+=24){block(x,581,3,56,'#604632');block(x+4,586,15,4,'#bb8755');block(x+4,626,15,4,'#795437')}
+    block(816,570,288,9,'#674731');block(816,641,288,9,'#674731');
+    for(let x=830;x<1090;x+=48){block(x,563,8,13,'#654632');block(x+2,562,4,3,'#d0a366');block(x,639,8,13,'#654632')}
+    // Low rocks and moss at the northern edge, in irregular groups.
+    [[240,215],[284,226],[323,203],[360,221],[402,208],[445,216],[474,203],[620,218],[665,205],[709,220],[750,208],[1200,205],[1246,218],[1300,207],[1352,223],[1390,208],[1444,216],[1490,202]].forEach(([x,y],i)=>{
+      block(x,y,28+(i%3)*6,16,'#626c58');block(x+4,y+2,16,5,'#a2a184');block(x+11,y+9,12,4,'#455b49');
+      if(i%2===0)block(x+20,y-4,6,5,'#65865a');
     });
+    // Hand-placed grass tufts and flower beds, grouped away from the trail.
+    const grassBeds=[[70,365,18],[126,470,15],[210,365,22],[330,465,17],[445,320,18],[500,835,20],[580,880,22],[700,360,18],[744,440,16],[1150,345,22],[1210,395,15],[1300,315,18],[1260,835,21],[1380,930,24],[1530,765,20],[1650,370,18],[1630,1000,22]];
+    grassBeds.forEach(([x,y,n])=>{for(let i=0;i<n;i++){const gx=x+(i%6)*9,gy=y+Math.floor(i/6)*8;block(gx,gy,3,5,i%3===0?'#8bb75b':i%3===1?'#477b48':'#adc263')}});
+    const flowers=[[525,510],[542,529],[566,514],[586,536],[609,519],[720,765],[741,748],[766,771],[788,751],[1156,716],[1174,732],[1192,712],[1250,844],[1270,863],[1294,842],[1460,708],[1480,722],[1502,704],[480,901],[500,916],[530,894],[1330,440],[1350,455],[1373,437]];
+    flowers.forEach(([x,y],i)=>{block(x,y,4,4,['#f2d66b','#f3e9c5','#ef8a57','#e6aee2'][i%4]);block(x+3,y+4,3,5,'#397348')});
     drawInn();
-    const flowers=[[515,520],[535,535],[554,514],[585,545],[610,530],[720,760],[742,748],[765,770],[785,752],[880,470],[901,480],[923,462],[950,485],[1040,780],[1060,798],[1083,779],[1102,792],[1360,770],[1382,786],[1405,765],[495,880],[515,895],[540,876]];
-    flowers.forEach(([x,y],i)=>{block(x,y,5,5,i%3===0?'#f2d17c':i%3===1?'#f2e5c0':'#c9a8d8');block(x+4,y+4,3,4,'#376947')});
     const objects=[
       {y:chest.y,draw:drawChest},
       {y:traveler.y,draw:()=>drawPerson(traveler.x,traveler.y,'traveler','down',0,'村人')},
@@ -261,7 +275,7 @@
     if(player.moving){
       const mag=Math.hypot(dx,dy);dx/=mag;dy/=mag;
       const nx=player.x+dx*3.2*dt,ny=player.y+dy*3.2*dt;
-      const blocked=trees.some(t=>Math.hypot(nx-t.x,ny-t.y)<42) || (Math.abs(nx-village.x)<66&&ny>village.y-83&&ny<village.y+36) || (((nx-pond.x)/pond.rx)**2+((ny-pond.y)/pond.ry)**2<.75);
+      const blocked=trees.some(t=>Math.hypot(nx-t.x,ny-t.y)<42) || (Math.abs(nx-village.x)<66&&ny>village.y-83&&ny<village.y+36) || (((nx-pond.x)/pond.rx)**2+((ny-pond.y)/pond.ry)**2<.88 && !(ny>558&&ny<665&&nx>820&&nx<1100));
       if(!blocked){player.x=Math.max(35,Math.min(WORLD_W-35,nx));player.y=Math.max(250,Math.min(WORLD_H-30,ny))}
       player.dir=Math.abs(dx)>Math.abs(dy)?(dx<0?'left':'right'):(dy<0?'up':'down');
       player.step+=.2*dt;
