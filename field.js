@@ -41,7 +41,7 @@
     quickPanes.forEach(p => p.classList.toggle('active', p.id === 'quick-' + chosen));
     document.querySelectorAll('[data-quick]').forEach(b => b.classList.toggle('active', b.dataset.quick === chosen));
     document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.screen === chosen));
-    if (open) encounterOverlay.classList.add('visible');
+    if (open) { held.clear(); encounterOverlay.classList.add('visible'); }
     if (chosen === 'battle' && !battle.started) startBattle();
   }
   document.querySelectorAll('[data-quick]').forEach(b => b.addEventListener('click', () => selectQuick(b.dataset.quick)));
@@ -55,10 +55,26 @@
     b.classList.toggle('active', b.dataset.screen === 'story');
   });
   selectQuick('story', false);
+  document.querySelector('#storyNext').addEventListener('click', e => {
+    if (document.querySelector('#storyProgress').textContent.trim().startsWith(String(story.length).padStart(2, '0'))) {
+      e.preventDefault(); e.stopImmediatePropagation(); storyComplete = true;
+      encounterOverlay.classList.remove('visible');
+      setObjective('森のスライムを倒そう');
+      say('道の先にスライムがいる。近づくと戦闘が始まるよ。');
+    }
+  }, true);
+  window.addEventListener('rpg-battle-won', () => { battleWon = true; setObjective('召喚師に会いに行こう'); say('勝利！ 村の召喚師を訪ねよう。'); });
+  window.addEventListener('rpg-summoned', () => { setObjective('冒険を続けて、次の物語を探そう'); });
   const canvas = document.querySelector('#world');
   const ctx = canvas.getContext('2d');
   const message = document.querySelector('#worldMessage');
+  const fieldAction = document.querySelector('#fieldAction');
   message.textContent = '村人や召喚師の近くで Space。魔物に近づくと戦闘開始。';
+  const objective = document.createElement('div');
+  objective.className = 'quest-hud';
+  objective.innerHTML = '<small>つぎの目的</small><strong>村人に会って話そう</strong>';
+  document.querySelector('.world-frame').append(objective);
+  function setObjective(text) { objective.querySelector('strong').textContent = text; }
   const W = 1200, H = 675, WORLD_W = 1800, WORLD_H = 1200, TILE = 50;
   canvas.width = 600;
   canvas.height = 338;
@@ -68,14 +84,15 @@
   spriteSheet.addEventListener('error', () => console.error('主人公スプライトを読み込めませんでした。'));
 
   const player = {x: 570, y: 590, dir: 'down', step: 0, moving: false};
-  const traveler = {x: 1000, y: 560};
+  const traveler = {x: 690, y: 565};
   const chest = {x: 760, y: 730, opened: false};
-  const slime = {x: 1280, y: 480};
+  const slime = {x: 1070, y: 545};
   const village = {x: 1160, y: 770};
-  const summoner = {x: 1290, y: 835};
+  const summoner = {x: 1110, y: 840};
   const pond = {x: 265, y: 875, rx: 200, ry: 115};
   const held = new Set();
   const trees = [];
+  let storyMet = false, storyComplete = false, summonMet = false, slimeMet = false, battleWon = false;
   for (let y = 80; y < WORLD_H - 40; y += 125) for (let x = 55; x < WORLD_W - 40; x += 135) {
     const n = (x * 17 + y * 29) % 101;
     if (n < 52 || x < 280 || x > 1500 || y < 180 || y > 980) {
@@ -96,7 +113,8 @@
     button.addEventListener('pointerdown', e => { e.preventDefault(); button.setPointerCapture(e.pointerId); held.add(dir); });
     for (const type of ['pointerup','pointercancel','lostpointercapture']) button.addEventListener(type, () => held.delete(dir));
   });
-  document.querySelector('#fieldAction').addEventListener('click', interact);
+  fieldAction.textContent = '調べる';
+  fieldAction.addEventListener('click', interact);
   function interact() {
     const near = (obj, range=90) => Math.hypot(player.x-obj.x, player.y-obj.y) < range;
     if (near(chest, 105)) {
@@ -204,7 +222,7 @@
     for(let i=0;i<44;i++){const fx=95+(i*173)%1580,fy=320+(i*97)%720;if(Math.hypot(fx-player.x,fy-player.y)>95&&Math.hypot(fx-village.x,fy-village.y)>110){block(fx,fy,5,5,['#f2d17c','#f2e5c0','#c9a8d8'][i%3]);block(fx+5,fy+4,3,4,'#376947')}}
     const objects=[
       {y:chest.y,draw:drawChest},
-      {y:traveler.y,draw:()=>drawPerson(traveler.x,traveler.y,'traveler','down',0,'旅人')},
+      {y:traveler.y,draw:()=>drawPerson(traveler.x,traveler.y,'traveler','down',0,'村人')},
       {y:summoner.y,draw:()=>drawPerson(summoner.x,summoner.y,'summoner','down',0,'召喚師')},
       {y:slime.y,draw:()=>drawPerson(slime.x,slime.y,'slime','down',0,'')},
       {y:player.y,draw:drawHero}
@@ -227,6 +245,14 @@
       player.dir=Math.abs(dx)>Math.abs(dy)?(dx<0?'left':'right'):(dy<0?'up':'down');
       player.step+=.2*dt;
     }else player.step+=.035*dt;
+    if(!encounterOverlay.classList.contains('visible')){
+      const close=(obj,r=98)=>Math.hypot(player.x-obj.x,player.y-obj.y)<r;
+      const target=close(traveler)?'村人と話す':close(summoner,110)?'召喚師と話す':close(slime)?'魔物に挑む':close(chest,105)?'宝箱を開ける':'';
+      fieldAction.textContent=target||'調べる';
+      if(!storyMet&&close(traveler)){storyMet=true;setObjective('村人の話を聞こう');say('村人「旅人さん、少しお話ししませんか？」');setScreen('story')}
+      else if(storyComplete&&!slimeMet&&close(slime)){slimeMet=true;setObjective('森の魔物を倒そう');say('スライムが飛び出した！');setScreen('battle')}
+      else if(battleWon&&!summonMet&&close(summoner)){summonMet=true;setObjective('星の仲間を召喚しよう');say('召喚師「星の仲間を呼んでみよう！」');setScreen('gacha')}
+    }else fieldAction.textContent='';
     draw();requestAnimationFrame(loop);
   }
   requestAnimationFrame(loop);
