@@ -290,5 +290,6 @@
     }else fieldAction.textContent='';
     draw();requestAnimationFrame(loop);
   }
+  draw();
   requestAnimationFrame(loop);
 })();
