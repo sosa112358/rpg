@@ -261,7 +261,7 @@
   let storyMet = false, storyComplete = false, summonMet = false, slimeMet = false, battleWon = false, chapterStage = 0, pendingClue = -1;
   window.addEventListener('rpg-battle-won', e => {
     const key=e.detail?.key||'gate'; battleWon=true;
-    if(key==='gate'){chapterStage=3;setObjective('ガルドに村の状況を聞こう');worldFrame.querySelector('.world-location').textContent='灰に沈む村 — 灰の夜から300年';say('魔物を退けた。石扉の向こうには、灰に沈む村が広がっている。');}
+    if(key==='gate'){chapterStage=3;traveler.x=1010;traveler.y=730;setObjective('ガルドに村の状況を聞こう');worldFrame.querySelector('.world-location').textContent='灰に沈む村 — 灰の夜から300年';say('魔物を退けた。石扉の向こうには、灰に沈む村が広がっている。');}
     else if(key==='road'){chapterStage=6;setObjective('老婆から古文書の場所を聞こう');say('鐘楼への道を取り戻した。村の老婆が、教会跡で待っている。');}
     else if(key==='ambush'){if(pendingClue>=0)clueSites[pendingClue].found=true;chapterStage=4.1;pendingClue=-1;if(clueSites.every(o=>o.found)){chapterStage=5;setObjective('鐘楼への道を塞ぐ魔物を倒そう');say('三つの手がかりを守る魔物を退けた。鐘楼への道が見えた。');}else setObjective('残りの手がかりを探そう（'+clueSites.filter(o=>!o.found).length+'つ）');}
     else if(key==='bellGuard'){chapterStage=8.5;setObjective('鐘楼の頂上へ向かおう');say('守りの魔物が倒れ、鐘楼の扉が開いた。');}
@@ -443,27 +443,37 @@
     });
   }
   function drawAshVillage() {
-    block(0,0,WORLD_W,WORLD_H,'#454542');
-    for(let y=250;y<WORLD_H;y+=50)for(let x=0;x<WORLD_W;x+=50){
-      const k=(x/50*5+y/50*13)%8;
-      block(x,y,49,49,k<3?'#55534d':k<6?'#4c4b47':'#5d574e');
-      if(k===1)block(x+8,y+12,17,3,'#69645a');if(k===4)block(x+27,y+33,11,4,'#3d3e3e');
+    block(0,0,WORLD_W,WORLD_H,'#393b35');
+    // Soft ash, scorched grass and debris break up the ruined village floor.
+    for(let y=250;y<WORLD_H;y+=38)for(let x=0;x<WORLD_W;x+=42){
+      const n=(x*17+y*31)%19;
+      if(n<6)block(x+(n*3)%17,y+(n*5)%13,19+n,5,n<2?'#555346':n<4?'#46483d':'#4b493e');
+      if(n===8||n===13){block(x+8,y+17,4,3,'#a45b38');if(n===8)block(x+9,y+13,2,4,'#d18b4e');}
+      if(n===10)block(x+20,y+5,13,4,'#272a28');
     }
-    // A gray road cuts through the burned settlement toward the surviving house.
+    // Packed earth road runs through the settlement to the shelter.
     const road=[{x:0,y:610},{x:340,y:615},{x:690,y:590},{x:980,y:620},{x:1260,y:580},{x:1560,y:625},{x:1800,y:590}];
-    for(const [color,width] of [['#393a39',102],['#706653',82],['#84765d',68]]){
+    for(const [color,width] of [['#292c29',106],['#706047',86],['#8a7650',66]]){
       ctx.beginPath();ctx.moveTo(road[0].x,road[0].y);road.slice(1).forEach(p=>ctx.lineTo(p.x,p.y));
       ctx.strokeStyle=color;ctx.lineWidth=width;ctx.lineCap='square';ctx.lineJoin='round';ctx.stroke();
     }
     [[110,420,104,65],[420,445,132,74],[800,360,110,68],[1380,420,124,80],[1480,810,94,66]].forEach(([x,y,w,h],i)=>{
-      block(x,y+h-12,w,h/2,'#343434');block(x-7,y+4,w+14,18,'#292929');
-      block(x+12,y,w-23,h/2,'#51483e');block(x+18,y+8,17,31,'#2c2927');
-      block(x+15,y+37,w-34,6,'#777064');if(i%2===0)block(x+w-34,y-6,19,17,'#292a2a');
+      block(x-5,y+h-9,w+10,12,'#292b28');block(x+5,y+4,w-10,h-7,i%2?'#574536':'#59483a');
+      block(x-10,y+1,w+20,15,'#302b28');
+      for(let px=x-4;px<x+w;px+=19)block(px,y+18,4,h-24,'#382f29');
+      block(x+Math.floor(w*.43),y+34,20,h-34,'#282624');
+      block(x+12,y+25,18,15,'#777165');block(x+15,y+28,12,9,'#b16b43');
+      if(i%2===0){block(x+w-27,y-8,14,28,'#34312b');block(x+w-24,y-14,8,8,'#574536');}
     });
     [[150,333],[360,820],[620,410],[920,900],[1290,500],[1540,710],[1720,360]].forEach(([x,y],i)=>{
       block(x,y,17,5,'#a45e3e');if(i%2===0)block(x+7,y-5,4,5,'#d18b4e');
     });
-    trees.forEach(t=>drawPillar(t.x,t.y));
+    // Charred trees have broken trunks and bare branches, unlike the ruin columns.
+    [[190,365],[350,845],[650,390],[920,890],[1270,455],[1580,735],[1710,345],[760,970]].forEach(([x,y],i)=>{
+      block(x-15,y+16,34,8,'#292925');block(x-5,y-23,12,43,'#342d27');
+      block(x-15,y-15,12,5,'#44372d');block(x+5,y-8,15,5,'#44372d');
+      block(x-19,y-20,8,4,'#39332b');if(i%2===0)block(x+8,y-17,8,4,'#3b332c');
+    });
   }
   function draw() {
     const camX=Math.max(0,Math.min(WORLD_W-W,player.x-W/2)),camY=Math.max(0,Math.min(WORLD_H-H,player.y-H/2));
