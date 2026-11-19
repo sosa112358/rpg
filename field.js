@@ -33,20 +33,20 @@
   document.querySelector('#quick-story').append(storySection.querySelector('.story-card'));
   document.querySelector('#quick-gacha').append(gachaSection.querySelector('.banner'), gachaSection.querySelector('.summon-actions'), gachaSection.querySelector('#roster'));
   const quickGrowth = document.querySelector('#quick-growth');
-  quickGrowth.innerHTML = '<div class="growth-title"><div><small>STATUS / CHAPTER 01</small><h2>\u540d\u3082\u306a\u304d\u5263\u58eb</h2></div><b id="growth-level">Lv.1</b></div><div class="growth-stats"><span>HP <b id="growth-hp">120</b></span><span>MP <b id="growth-mp">24</b></span><span>\u653b\u6483 <b id="growth-atk">32</b></span></div><div class="growth-exp"><div><span>\u7d4c\u9a13\u5024</span><b id="growth-exp-label">0 / 60</b></div><i><span id="growth-exp-bar"></span></i></div><p class="growth-points">\u6280\u80fd\u30dd\u30a4\u30f3\u30c8 <b id="growth-points">0</b>&nbsp;&bull;&nbsp;\u6226\u95d8\u3067\u7d4c\u9a13\u5024\u3092\u5f97\u3066\u30ec\u30d9\u30eb\u30a2\u30c3\u30d7</p><h3>\u7fd2\u5f97\u3067\u304d\u308b\u30b9\u30ad\u30eb</h3><div class="skill-list" id="skill-list"></div>';
+  quickGrowth.innerHTML = '<div class="growth-title"><div><small>STATUS / CHAPTER 01</small><h2>\u540d\u3082\u306a\u304d\u5263\u58eb</h2></div><b id="growth-level">Lv.1</b></div><div class="growth-stats"><span>HP <b id="growth-hp">120</b></span><span>MP <b id="growth-mp">24</b></span><span>\u653b\u6483 <b id="growth-atk">32</b></span><span>\u9b54\u529b <b id="growth-magic">20</b></span></div><div class="growth-exp"><div><span>\u7d4c\u9a13\u5024</span><b id="growth-exp-label">0 / 60</b></div><i><span id="growth-exp-bar"></span></i></div><p class="growth-points">\u6280\u80fd\u30dd\u30a4\u30f3\u30c8 <b id="growth-points">0</b>&nbsp;&bull;&nbsp;\u6226\u95d8\u3067\u7d4c\u9a13\u5024\u3092\u5f97\u3066\u30ec\u30d9\u30eb\u30a2\u30c3\u30d7</p><div class="formula-note">\u7269\u7406: \u653b\u6483\u529b \u00d7 \u30b9\u30ad\u30eb\u500d\u7387 \u00d7 \u4f1a\u5fc3\u30c0\u30e1\u30fc\u30b8 - \u76f8\u624b\u306e\u9632\u5fa1\u529b<br>\u9b54\u6cd5: \u9b54\u529b \u00d7 \u9b54\u6cd5\u500d\u7387 \u00d7 \u4f1a\u5fc3\u30c0\u30e1\u30fc\u30b8 - \u76f8\u624b\u306e\u9b54\u6cd5\u9632\u5fa1\u529b<br>\u4f1a\u5fc3\u7387 10% / \u4f1a\u5fc3\u30c0\u30e1\u30fc\u30b8 \u00d71.5</div><h3>\u7fd2\u5f97\u3067\u304d\u308b\u30b9\u30ad\u30eb</h3><div class="skill-list" id="skill-list"></div>';
   function renderGrowthPanel(){
     const s=window.rpgSave;if(!s)return;
     quickGrowth.querySelector('#growth-level').textContent='Lv.'+s.level;
     quickGrowth.querySelector('#growth-hp').textContent=s.maxHp;
     quickGrowth.querySelector('#growth-mp').textContent=s.maxMp;
-    quickGrowth.querySelector('#growth-atk').textContent=s.atk;
+    quickGrowth.querySelector('#growth-atk').textContent=s.atk;quickGrowth.querySelector('#growth-magic').textContent=s.magic;
     quickGrowth.querySelector('#growth-exp-label').textContent=s.exp+' / '+s.expNext;
     quickGrowth.querySelector('#growth-exp-bar').style.width=Math.min(100,s.exp/s.expNext*100)+'%';
     quickGrowth.querySelector('#growth-points').textContent=s.skillPoints;
     quickGrowth.querySelector('#skill-list').innerHTML=window.rpgSkills.map(skill=>{
       const learned=s.learnedSkills.includes(skill.id),equipped=s.equippedSkill===skill.id,available=s.level>=skill.level&&s.skillPoints>=skill.points;
       const action=learned?'<button data-equip-skill="'+skill.id+'" '+(equipped?'disabled':'')+'>'+(equipped?'\u88c5\u5099\u4e2d':'\u30bb\u30c3\u30c8')+'</button>':available?'<button data-learn-skill="'+skill.id+'">\u7fd2\u5f97 ('+skill.points+' SP)</button>':'<button disabled>'+(s.level<skill.level?'Lv.'+skill.level+'\u3067\u89e3\u653e':'SP\u4e0d\u8db3')+'</button>';
-      return '<article class="skill-card '+(learned?'learned':'locked')+'"><div><strong>'+skill.name+'</strong><small>\u5fc5\u8981Lv '+skill.level+' ? MP '+skill.mp+'</small><p>'+skill.desc+'</p></div>'+action+'</article>';
+      return '<article class="skill-card '+(learned?'learned':'locked')+'"><div><strong>'+skill.name+'</strong><small>\u5fc5\u8981Lv '+skill.level+' / '+(skill.type==='magic'?'\u9b54\u6cd5':'\u7269\u7406')+' / MP '+skill.mp+'</small><p>'+skill.desc+'</p></div>'+action+'</article>';
     }).join('');
   }
   quickGrowth.addEventListener('click',e=>{const learn=e.target.closest('[data-learn-skill]'),equip=e.target.closest('[data-equip-skill]');if(learn)window.rpgLearnSkill(learn.dataset.learnSkill);if(equip)window.rpgEquipSkill(equip.dataset.equipSkill);renderGrowthPanel()});
@@ -234,9 +234,9 @@
   objective.innerHTML = '<small>CHAPTER 01 / NEXT</small><strong>\u30ea\u30ea\u30a2\u304b\u3089\u8a71\u3092\u805e\u3053\u3046</strong>';
   document.querySelector('.world-frame').append(objective);
   function setObjective(text) { if (objective) objective.querySelector('strong').textContent = text; }
-  const levelHud = document.createElement('div');levelHud.className='hero-progress';levelHud.innerHTML='<b>Lv.<span id="field-level">1</span></b><div><i><span id="field-exp-bar"></span></i><small id="field-exp">0 / 60 EXP</small></div><span class="hero-stats">HP <b id="field-hp">120</b>　⚔ <b id="field-atk">32</b></span>';
+  const levelHud = document.createElement('div');levelHud.className='hero-progress';levelHud.innerHTML='<b>Lv.<span id="field-level">1</span></b><div><i><span id="field-exp-bar"></span></i><small id="field-exp">0 / 60 EXP</small></div><span class="hero-stats">HP <b id="field-hp">120</b> / ATK <b id="field-atk">32</b> / MAG <b id="field-magic">20</b></span>';
   document.querySelector('.world-frame').append(levelHud);
-  function refreshLevelHud(){const s=window.rpgSave;if(!s)return;levelHud.querySelector('#field-level').textContent=s.level;levelHud.querySelector('#field-exp').textContent=s.exp+' / '+s.expNext+' EXP';levelHud.querySelector('#field-exp-bar').style.width=Math.min(100,s.exp/s.expNext*100)+'%';levelHud.querySelector('#field-hp').textContent=s.maxHp;levelHud.querySelector('#field-atk').textContent=s.atk;}
+  function refreshLevelHud(){const s=window.rpgSave;if(!s)return;levelHud.querySelector('#field-level').textContent=s.level;levelHud.querySelector('#field-exp').textContent=s.exp+' / '+s.expNext+' EXP';levelHud.querySelector('#field-exp-bar').style.width=Math.min(100,s.exp/s.expNext*100)+'%';levelHud.querySelector('#field-hp').textContent=s.maxHp;levelHud.querySelector('#field-atk').textContent=s.atk;levelHud.querySelector('#field-magic').textContent=s.magic;}
   window.addEventListener('rpg-growth-updated',refreshLevelHud);refreshLevelHud();
   const W = 1200, H = 675, WORLD_W = 4200, WORLD_H = 2700, TILE = 50;
   canvas.width = 1200;
