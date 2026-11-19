@@ -160,7 +160,7 @@ body{background:#17191b}
 .growth-title small{color:#cbb882;font:9px monospace;letter-spacing:.12em}
 .growth-title h2{margin:4px 0 0;color:#f4e6c4;font-size:18px}
 .growth-title>b{padding:8px 10px;background:#151b1a;border:1px solid #b9a06e;color:#f3d58b;font:14px monospace}
-.growth-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+.growth-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
 .growth-stats>span{padding:9px 6px;background:#222a25;border:1px solid #485442;color:#bfc5b2;text-align:center;font:10px monospace}
 .growth-stats b{display:block;margin-top:4px;color:#f1e3c1;font-size:15px}
 .growth-exp{margin:12px 0;padding:10px;background:#202723;border:1px solid #414c40;color:#d8d4bd;font:10px monospace}
