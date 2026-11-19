@@ -34,8 +34,10 @@
   document.querySelector('#quick-gacha').append(gachaSection.querySelector('.banner'), gachaSection.querySelector('.summon-actions'), gachaSection.querySelector('#roster'));
   const quickGrowth = document.querySelector('#quick-growth');
   quickGrowth.innerHTML = '<div class="growth-title"><div><small>STATUS / CHAPTER 01</small><h2>\u540d\u3082\u306a\u304d\u5263\u58eb</h2></div><b id="growth-level">Lv.1</b></div><div class="growth-stats"><span>HP <b id="growth-hp">1000</b></span><span>MP <b id="growth-mp">20</b></span><span>\u653b\u6483 <b id="growth-atk">100</b></span><span>\u9b54\u529b <b id="growth-magic">40</b></span><span>\u4f1a\u5fc3\u7387 <b id="growth-crit">0%</b></span><span>\u4f1a\u5fc3\u30c0\u30e1\u30fc\u30b8 <b id="growth-crit-dmg">100%</b></span></div><div class="growth-exp"><div><span>\u7d4c\u9a13\u5024</span><b id="growth-exp-label">0 / 60</b></div><i><span id="growth-exp-bar"></span></i></div><p class="growth-points">\u6280\u80fd\u30dd\u30a4\u30f3\u30c8 <b id="growth-points">0</b>&nbsp;&bull;&nbsp;\u6226\u95d8\u3067\u7d4c\u9a13\u5024\u3092\u5f97\u3066\u30ec\u30d9\u30eb\u30a2\u30c3\u30d7</p><div class="formula-note">\u7269\u7406: \u653b\u6483\u529b \u00d7 \u30b9\u30ad\u30eb\u500d\u7387 \u00d7 \u4f1a\u5fc3\u30c0\u30e1\u30fc\u30b8 - \u76f8\u624b\u306e\u9632\u5fa1\u529b<br>\u9b54\u6cd5: \u9b54\u529b \u00d7 \u9b54\u6cd5\u500d\u7387 \u00d7 \u4f1a\u5fc3\u30c0\u30e1\u30fc\u30b8 - \u76f8\u624b\u306e\u9b54\u6cd5\u9632\u5fa1\u529b<br>\u4f1a\u5fc3\u7387 <span id="growth-formula-crit">0%</span> / \u4f1a\u5fc3\u30c0\u30e1\u30fc\u30b8 <span id="growth-formula-crit-dmg">100%</span></div><h3>\u7fd2\u5f97\u3067\u304d\u308b\u30b9\u30ad\u30eb</h3><div class="skill-list" id="skill-list"></div>';
-  quickGrowth.insertAdjacentHTML('beforeend','<section class="lilia-growth"><h3>リリア <small id="lilia-growth-status">未加入</small> <small id="lilia-growth-level">Lv.1</small></h3><div class="growth-stats"><span>HP <b id="lilia-growth-hp">900</b></span><span>MP <b id="lilia-growth-mp">50</b></span><span>攻撃 <b id="lilia-growth-atk">60</b></span><span>魔力 <b id="lilia-growth-magic">20</b></span><span>会心率 <b id="lilia-growth-crit">10%</b></span><span>会心ダメージ <b id="lilia-growth-crit-dmg">110%</b></span></div></section>');function renderGrowthPanel(){
-    const s=window.rpgSave;if(!s)return;
+  quickGrowth.insertAdjacentHTML('beforeend','<section class="lilia-growth"><h3>リリア <small id="lilia-growth-status">未加入</small> <small id="lilia-growth-level">Lv.1</small></h3><div class="growth-stats"><span>HP <b id="lilia-growth-hp">900</b></span><span>MP <b id="lilia-growth-mp">50</b></span><span>攻撃 <b id="lilia-growth-atk">60</b></span><span>魔力 <b id="lilia-growth-magic">20</b></span><span>会心率 <b id="lilia-growth-crit">10%</b></span><span>会心ダメージ <b id="lilia-growth-crit-dmg">110%</b></span></div></section>');quickGrowth.insertAdjacentHTML('beforeend',`<section class="equipment-panel"><h3>装備・クラフト</h3><label>武器 <select data-gear="weapon" id="weaponSelect"></select></label><label>頭 <select data-gear="head" id="headSelect"></select></label><label>胴体 <select data-gear="body" id="bodySelect"></select></label><label>下半身 <select data-gear="legs" id="legsSelect"></select></label><div class="craft-stock" id="craftStock"></div><button class="craft-button" id="craftButton">灰の欠片3 + 薬草2 で装備をクラフト</button></section>`);
+for(const slot of ['weapon','head','body','legs']){const select=quickGrowth.querySelector('[data-gear="'+slot+'"]');select.innerHTML=Object.entries(window.rpgGear[slot]).map(([id,item])=>'<option value="'+id+'">'+item.name+(item.atk?' (攻撃 +'+item.atk+')':item.hp?' (HP +'+item.hp+')':'')+'</option>').join('')}
+function renderGrowthPanel(){
+    const s=window.rpgSave;if(!s)return;for(const slot of ['weapon','head','body','legs'])quickGrowth.querySelector('[data-gear="'+slot+'"]').value=s.equipment[slot];quickGrowth.querySelector('#craftStock').textContent='素材: 灰の欠片 '+s.inventory.ashShard+' / 薬草 '+s.inventory.herb+' / 夜茸 '+s.inventory.mushroom+' / \u98df\u4e8b '+(s.inventory.meal||0);
     quickGrowth.querySelector('#growth-level').textContent='Lv.'+s.level;
     quickGrowth.querySelector('#growth-hp').textContent=s.maxHp;
     quickGrowth.querySelector('#growth-mp').textContent=s.maxMp;
@@ -50,7 +52,7 @@
       return '<article class="skill-card '+(learned?'learned':'locked')+'"><div><strong>'+skill.name+'</strong><small>\u5fc5\u8981Lv '+skill.level+' / '+(skill.type==='magic'?'\u9b54\u6cd5':'\u7269\u7406')+' / MP '+skill.mp+'</small><p>'+skill.desc+'</p></div>'+action+'</article>';
     }).join('');
   }
-  quickGrowth.addEventListener('click',e=>{const learn=e.target.closest('[data-learn-skill]'),equip=e.target.closest('[data-equip-skill]');if(learn)window.rpgLearnSkill(learn.dataset.learnSkill);if(equip)window.rpgEquipSkill(equip.dataset.equipSkill);renderGrowthPanel()});
+  quickGrowth.addEventListener('click',e=>{const learn=e.target.closest('[data-learn-skill]'),equip=e.target.closest('[data-equip-skill]');if(learn)window.rpgLearnSkill(learn.dataset.learnSkill);if(equip)window.rpgEquipSkill(equip.dataset.equipSkill);if(e.target.id==='craftButton'){const result=window.rpgCraft();say(result?'装備をクラフトした: '+result.item.name:'素材が足りない。灰の欠片3つと薬草2つが必要だ。')}renderGrowthPanel()});quickGrowth.addEventListener('change',e=>{if(e.target.dataset.gear)window.rpgEquipGear(e.target.dataset.gear,e.target.value)});
   window.addEventListener('rpg-growth-updated',renderGrowthPanel);window.addEventListener('rpg-companion-joined',renderGrowthPanel);window.addEventListener('rpg-player-name-changed',renderGrowthPanel);renderGrowthPanel();
   const quickBattle = document.querySelector('#quick-battle');
   const battleStage = battleSection.querySelector('.battlefield');
@@ -70,7 +72,7 @@
   quickPanes.forEach(p => encounterBody.append(p));
   encounterOverlay.addEventListener('click', e => { if (e.target === encounterOverlay || e.target.closest('.encounter-close')) { if(encounterOverlay.classList.contains('battle-open'))return; encounterOverlay.classList.remove('visible'); } });
   const prologue = document.createElement('div');
-  prologue.className = 'prologue-overlay visible';
+  prologue.className = 'prologue-overlay'+(window.rpgSave?.playerName?'':' visible');
   prologue.innerHTML = '<section class="prologue-box"><small>CHAPTER 01 / ASHEN VILLAGE</small><div class="dialogue-layout"><canvas class="dialogue-portrait" width="150" height="180" aria-label="話している人物"></canvas><div class="dialogue-copy"><h2></h2><p></p></div></div><button type="button" class="primary">次へ <span>▶</span></button></section>';
   home.append(prologue);
   const nameEntry = document.createElement('label');
@@ -185,6 +187,7 @@
     prologue.querySelector('button').innerHTML=openingIndex===activePages.length-1?'冒険を始める <span>▶</span>':'次へ <span>▶</span>';
   };
   showOpening();
+  if(window.rpgSave?.playerName)prologue.classList.remove('visible');
   prologue.querySelector('button').addEventListener('click', () => {
     if(activePages===opening&&openingIndex===opening.length-1){const name=heroNameInput.value.replace(/[<>]/g,'').trim().slice(0,12);if(!name){heroNameInput.focus();heroNameInput.setCustomValidity('名前を入力してください');heroNameInput.reportValidity();return;}heroNameInput.setCustomValidity('');if(!window.rpgSetPlayerName?.(name)){heroNameInput.focus();return;}}
     if (++openingIndex < activePages.length) showOpening();
@@ -222,6 +225,7 @@
     if(chosen==='story')syncStoryPortrait();
     if (chosen === 'battle' && !battle.started) startBattle();
   }
+  window.rpgOpenQuick=id=>selectQuick(id);
   document.querySelectorAll('[data-quick]').forEach(b => b.addEventListener('click', () => selectQuick(b.dataset.quick)));
   // Existing navigation and story transitions now switch the in-screen panel only.
   setScreen = id => selectQuick(id);
@@ -255,7 +259,10 @@
   objective.className = 'quest-hud';
   objective.innerHTML = '<small>CHAPTER 01 / NEXT</small><strong>\u30ea\u30ea\u30a2\u304b\u3089\u8a71\u3092\u805e\u3053\u3046</strong>';
   document.querySelector('.world-frame').append(objective);
-  function setObjective(text) { if (objective) objective.querySelector('strong').textContent = text; }
+  function setObjective(text) { if (objective) objective.querySelector('strong').textContent = text; saveWorld(); }
+  function saveWorld(){
+    try{localStorage.setItem('eldia-world-state',JSON.stringify({chapterStage,storyMet,storyComplete,summonMet,slimeMet,battleWon,pendingClue,playerX:player.x,playerY:player.y,playerDir:player.dir,travelerX:traveler.x,travelerY:traveler.y,chestOpened:chest.opened,clueFound:clueSites.map(o=>o.found),objective:objective?.querySelector('strong')?.textContent||'',mapId}));}catch{}
+  }
   const levelHud = document.createElement('div');levelHud.className='hero-progress';levelHud.innerHTML='<b>Lv.<span id="field-level">1</span></b><div><i><span id="field-exp-bar"></span></i><small id="field-exp">0 / 60 EXP</small></div><span class="hero-stats">HP <b id="field-hp">120</b> / ATK <b id="field-atk">32</b> / MAG <b id="field-magic">20</b></span>';
   document.querySelector('.world-frame').append(levelHud);
   function refreshLevelHud(){const s=window.rpgSave;if(!s)return;levelHud.querySelector('#field-level').textContent=s.level;levelHud.querySelector('#field-exp').textContent=s.exp+' / '+s.expNext+' EXP';levelHud.querySelector('#field-exp-bar').style.width=Math.min(100,s.exp/s.expNext*100)+'%';levelHud.querySelector('#field-hp').textContent=s.maxHp;levelHud.querySelector('#field-atk').textContent=s.atk;levelHud.querySelector('#field-magic').textContent=s.magic;}
@@ -288,18 +295,21 @@
   spriteSheet.addEventListener('load', () => { window.protagonistSheet=spriteSheet; drawSpeaker(activePages[openingIndex][0]); syncStoryPortrait(); window.dispatchEvent(new Event('rpg-battle-art-ready')); });
   spriteSheet.addEventListener('error', () => console.error('主人公スプライトを読み込めませんでした。'));
 
-  const player = {x: 570, y: 590, dir: 'down', step: 0, moving: false};
-  const traveler = {x: 690, y: 565};
-  const chest = {x: 760, y: 730, opened: false};
-  const slime = {x: 1070, y: 545};
+  const savedWorld=(()=>{try{return JSON.parse(localStorage.getItem('eldia-world-state')||'{}')}catch{return {}}})();
+  let mapId=['ruins','outside','secret'].includes(savedWorld.mapId)?savedWorld.mapId:(Number(savedWorld.chapterStage)>=3?'outside':'ruins');
+  const exitPoint={x:870,y:590},returnPoint={x:965,y:550},secretGate={x:720,y:1020},secretReturn={x:1380,y:1390},secretFoe={x:1510,y:1250},homestead={x:1270,y:875},farmPlot={x:1300,y:1015},workbench={x:1500,y:875},cookpot={x:1510,y:1015};
+  const player = {x:!savedWorld.mapId?(Number(savedWorld.chapterStage)>=3?returnPoint.x:690):(Number(savedWorld.playerX)||570),y:!savedWorld.mapId?(Number(savedWorld.chapterStage)>=3?returnPoint.y:565):(Number(savedWorld.playerY)||590),dir:savedWorld.playerDir||'down',step:0,moving:false};
+  const traveler = {x:Number(savedWorld.travelerX)||690,y:Number(savedWorld.travelerY)||565};
+  const chest = {x:760,y:730,opened:Boolean(savedWorld.chestOpened)};
+  const slime = {x: 790, y: 680};
   const village = {x: 1160, y: 770};
   const summoner = {x: 1110, y: 840};
   const witness = {x: 1320, y: 610};
-  const elder = {x: 1430, y: 770};
+  const elder = {x: 1460, y: 825};
   const roadGuard = {x: 1570, y: 970};
   const bellGuard = {x: 1480, y: 930};
   const chapterBoss = {x: 1640, y: 1010};
-  const clueSites = [{x:1240,y:720,found:false},{x:1420,y:650,found:false},{x:1500,y:800,found:false}];
+  const clueSites = [{x:1240,y:720,found:Boolean(savedWorld.clueFound?.[0])},{x:1420,y:650,found:Boolean(savedWorld.clueFound?.[1])},{x:1500,y:800,found:Boolean(savedWorld.clueFound?.[2])}];
   const pond = {x: 960, y: 635, rx: 142, ry: 600};
   const held = new Set();
   // Hand-placed tree groups frame the paths and landmarks.
@@ -314,16 +324,26 @@
     if(seed<5||Math.abs(gy-roadY)<145)continue;
     forestTrees.push({x:gx+(seed%31)-15,y:gy+((seed*7)%35)-17,size:.78+(seed%5)*.12});
   }
-  let storyMet = false, storyComplete = false, summonMet = false, slimeMet = false, battleWon = false, chapterStage = 0, pendingClue = -1;
+  let chapterStage=Number(savedWorld.chapterStage??(window.rpgSave?.playerName?1:0)),storyMet=Boolean(savedWorld.storyMet||chapterStage>0),storyComplete=Boolean(savedWorld.storyComplete||chapterStage>=2),summonMet=Boolean(savedWorld.summonMet||chapterStage>=4),slimeMet=Boolean(savedWorld.slimeMet||chapterStage>=2),battleWon=Boolean(savedWorld.battleWon||chapterStage>=3),pendingClue=-1;
+  if(chapterStage===2.5)chapterStage=2;
+  if(chapterStage===4.2){chapterStage=4.1;pendingClue=-1;}
+  if(chapterStage===5.5)chapterStage=5;
+  if(chapterStage===8.2)chapterStage=8;
+  if(chapterStage===9.5)chapterStage=8.5;
+  if(savedWorld.objective&&chapterStage>0)setObjective(savedWorld.objective);
+  if(chapterStage>=3)worldFrame.querySelector('.world-location').textContent=mapId==='ruins'?'古代遺跡':mapId==='secret'?'遺跡の秘境':'灰に沈む村 — 灰の夜から300年';
+  saveWorld();
+  window.addEventListener('pagehide',saveWorld);
+  setInterval(saveWorld,1500);
   window.addEventListener('rpg-battle-won', e => {
     const key=e.detail?.key||'gate'; battleWon=true;
-    if(key==='gate'){chapterStage=3;traveler.x=1010;traveler.y=730;setObjective('ガルドに村の状況を聞こう');worldFrame.querySelector('.world-location').textContent='灰に沈む村 — 灰の夜から300年';say('魔物を退けた。石扉の向こうには、灰に沈む村が広がっている。');}
+    if(key==='gate'){mapId='outside';player.x=returnPoint.x;player.y=returnPoint.y;chapterStage=3;traveler.x=1010;traveler.y=730;setObjective('ガルドに村の状況を聞こう');worldFrame.querySelector('.world-location').textContent='灰に沈む村 — 灰の夜から300年';say('魔物を退けた。石扉の向こうには、灰に沈む村が広がっている。');}
     else if(key==='road'){chapterStage=6;setObjective('老婆から古文書の場所を聞こう');say('鐘楼への道を取り戻した。村の老婆が、教会跡で待っている。');}
     else if(key==='ambush'){if(pendingClue>=0)clueSites[pendingClue].found=true;chapterStage=4.1;pendingClue=-1;if(clueSites.every(o=>o.found)){chapterStage=5;setObjective('鐘楼への道を塞ぐ魔物を倒そう');say('三つの手がかりを守る魔物を退けた。鐘楼への道が見えた。');}else setObjective('残りの手がかりを探そう（'+clueSites.filter(o=>!o.found).length+'つ）');}
     else if(key==='bellGuard'){chapterStage=8.5;setObjective('鐘楼の頂上へ向かおう');say('守りの魔物が倒れ、鐘楼の扉が開いた。');}
     else if(key==='chapterBoss'){chapterStage=10;setObjective('第1章「灰に沈む村」完');playDialogue(chapterDialogues.ending,()=>{if(typeof save!=='undefined'){save.storyDone=true;saveGame();}});}
   });
-  let encounterCooldownUntil = 0;
+  let encounterCooldownUntil = 0, encounterLaunching=false;
   window.addEventListener('rpg-battle-escaped',e=>{
     const key=e.detail?.key;
     if(key==='gate'&&chapterStage===2.5){chapterStage=2;setObjective('\u77f3\u6249\u306e\u7070\u55b0\u3044\u3092\u5012\u305d\u3046')}
@@ -334,6 +354,7 @@
     say('\u9003\u3052\u51fa\u3057\u305f\u3002\u4f53\u52e2\u3092\u6574\u3048\u3066\u518d\u6311\u6226\u3067\u304d\u308b');
   });
   window.addEventListener('rpg-battle-close', () => {
+    document.querySelector('#battle').classList.remove('battle-enter','battle-win','battle-exit');
     encounterOverlay.classList.remove('visible');
     held.clear(); resetJoystick();
     encounterCooldownUntil=Date.now()+15000;
@@ -357,10 +378,19 @@
   });
   fieldAction.textContent = '調べる';
   fieldAction.addEventListener('click', interact);
-  function beginBattle(key) { if(Date.now()<encounterCooldownUntil)return; window.nextEncounterKey=key; say(key==='chapterBoss'?'\u7070\u9396\u306e\u5c06\u304c\u5927\u5263\u3092\u69cb\u3048\u305f\uff01':'\u9b54\u7269\u304c\u884c\u304f\u624b\u3092\u585e\u3044\u3060\uff01'); setTimeout(()=>setScreen('battle'),220); }
+  function beginBattle(key) { if(Date.now()<encounterCooldownUntil||encounterLaunching)return; encounterLaunching=true;saveWorld(); window.nextEncounterKey=key; say(key==='chapterBoss'?'\u7070\u9396\u306e\u5c06\u304c\u5927\u5263\u3092\u69cb\u3048\u305f\uff01':'\u9b54\u7269\u304c\u884c\u304f\u624b\u3092\u585e\u3044\u3060\uff01'); setTimeout(()=>{encounterLaunching=false;setScreen('battle')},220); }
   function interact() {
     const near=(obj,range=100)=>Math.hypot(player.x-obj.x,player.y-obj.y)<range;
-    if(near(traveler,115)&&chapterStage===1){playDialogue(chapterDialogues.lilia,()=>{storyComplete=true;chapterStage=2;setObjective('\u77f3\u6249\u306e\u524d\u306b\u3044\u308b\u7070\u55b0\u3044\u3092\u5012\u305d\u3046');say('\u7825\u3051\u305f\u77f3\u6249\u306e\u5965\u3067\u3001\u7070\u3092\u307e\u3068\u3063\u305f\u9b54\u7269\u304c\u3046\u3054\u3081\u3044\u3066\u3044\u308b\u3002');});}
+    if(mapId==='ruins'&&near(traveler,115)&&chapterStage===1){playDialogue(chapterDialogues.lilia,()=>{storyComplete=true;chapterStage=2;setObjective('遺跡の出口から村へ出よう');say('石扉の向こうに、地上へ続く出口がある。');});}
+    else if(mapId==='ruins'&&near(exitPoint,130)){mapId='outside';player.x=returnPoint.x;player.y=returnPoint.y;worldFrame.querySelector('.world-location').textContent='灰に沈む村';setObjective(chapterStage===2?'村の入口にいる灰喰いを倒そう':'村を探索しよう');say('遺跡を出て、灰に沈む村へたどり着いた。');saveWorld();}
+    else if(mapId==='outside'&&near(returnPoint,125)){mapId='ruins';player.x=exitPoint.x;player.y=exitPoint.y;worldFrame.querySelector('.world-location').textContent='古代遺跡';say('冷たい石壁の奥へ戻った。');saveWorld();}
+    else if(mapId==='ruins'&&near(secretGate,115)){mapId='secret';player.x=secretFoe.x-130;player.y=secretFoe.y;worldFrame.querySelector('.world-location').textContent='遺跡の秘境';setObjective('秘境の魔物を倒して装備を探そう');say('壁の奥に隠された秘境へ踏み込んだ。魔物の気配がいくつも重なる。');saveWorld();}
+    else if(mapId==='secret'&&near(secretReturn,115)){mapId='ruins';player.x=secretGate.x;player.y=secretGate.y+100;worldFrame.querySelector('.world-location').textContent='古代遺跡';say('遺跡の通路へ戻った。');saveWorld();}
+    else if(mapId==='secret'&&Date.now()>=encounterCooldownUntil&&near(secretFoe,150)){beginBattle('secret');}
+    else if(mapId==='outside'&&Math.hypot(player.x-cookpot.x,player.y-cookpot.y)<90){if(save.inventory.mushroom>0&&save.inventory.herb>0){save.inventory.mushroom--;save.inventory.herb--;save.inventory.meal=(save.inventory.meal||0)+1;saveGame();say('\u591c\u8338\u3068\u85ac\u8349\u3092\u716e\u8fbc\u3093\u3067\u3001\u7070\u591c\u306e\u30b9\u30fc\u30d7\u3092\u4f5c\u3063\u305f\u3002')}else say('\u934b\u306f\u7a7a\u3060\u3002\u591c\u8338\u3068\u85ac\u8349\u3092\u4e00\u3064\u305a\u3064\u5165\u308c\u3088\u3046\u3002');}
+    else if(mapId==='outside'&&Math.hypot(player.x-homestead.x,player.y-homestead.y)<140){say('ここがあなたの土地だ。作業台で装備を作り、畑で薬草を育てられる。');}
+    else if(mapId==='outside'&&Math.hypot(player.x-farmPlot.x,player.y-farmPlot.y)<120){if(Date.now()>=Number(save.farmReadyAt||0)){save.inventory.herb+=3;save.farmReadyAt=Date.now()+45000;saveGame();say('畑から薬草を3つ収穫した。しばらく休ませよう。');}else say('畑の芽が育っている。もう少し待とう。');}
+    else if(mapId==='outside'&&Math.hypot(player.x-workbench.x,player.y-workbench.y)<110){const result=window.rpgCraft?.();if(result)say(result.item.name+'を作った。灰の欠片3つと薬草2つを使った。');else say('作業台。灰の欠片3つと薬草2つで装備を作れる。');}
     else if(near(summoner,125)&&chapterStage===3&&!summonMet){summonMet=true;playDialogue(chapterDialogues.gald,()=>{chapterStage=4;setObjective('\u751f\u5b58\u8005\u304b\u3089\u9418\u697c\u306e\u8a71\u3092\u805e\u3053\u3046');selectQuick('gacha');});}
     else if(near(witness,115)&&chapterStage===4){playDialogue(chapterDialogues.survivor,()=>{chapterStage=4.1;setObjective('村の周辺で鐘楼へ続く手がかりを3つ探そう');});}
     else if(chapterStage===4.1&&Date.now()>=encounterCooldownUntil&&clueSites.some(o=>near(o,90))){const i=clueSites.findIndex(o=>near(o,90)&&!o.found);if(i>=0){playDialogue(chapterDialogues.traces[i],()=>{pendingClue=i;chapterStage=4.2;beginBattle('ambush');});}else say('この場所はもう調べた。');}
@@ -372,7 +402,7 @@
     else if(near(chapterBoss,130)&&chapterStage===8.5&&Date.now()>=encounterCooldownUntil){chapterStage=9.5;playDialogue(chapterDialogues.bossIntro,()=>beginBattle('chapterBoss'));}
     else if(near(traveler,115)&&chapterStage>1)say('\u30ea\u30ea\u30a2\u300c\u3053\u306e\u5263\u306b\u53cd\u5fdc\u3057\u3066\u3044\u308b\u9b54\u7269\u304c\u3044\u308b\u3002\u6c17\u3092\u3064\u3051\u3066\u300d');
     else if(near(summoner,125)&&chapterStage>3)say('\u30ac\u30eb\u30c9\u300c\u9418\u697c\u3078\u306e\u9053\u3092\u53d6\u308a\u623b\u305b\u3002\u751f\u5b58\u8005\u304c\u5730\u4e0b\u306b\u3044\u308b\u300d');
-    else if(near(slime,110)&&chapterStage===2&&Date.now()>=encounterCooldownUntil){slimeMet=true;chapterStage=2.5;beginBattle('gate');}
+    else if(mapId==='ruins'&&near(slime,110)&&chapterStage===2&&Date.now()>=encounterCooldownUntil){slimeMet=true;chapterStage=2.5;beginBattle('gate');}
     else say('\u7070\u306b\u8986\u308f\u308c\u305f\u907a\u8de1\u3060\u3002\u8db3\u5143\u306b\u6c17\u3092\u3064\u3051\u3066\u9032\u3082\u3046\u3002');
   }
   let messageTimer;
@@ -397,7 +427,7 @@
     const art = kind === 'traveler' ? {x:20,y:90,w:105,h:155} : kind === 'summoner' ? {x:365,y:90,w:105,h:155} : kind === 'elder' ? {x:1055,y:586,w:120,h:145} : {x:10,y:586,w:85,h:145};
     if (characterArt) {
       const bob = step ? Math.sin(step) * 2 : 0;
-      const w = kind === 'traveler' ? 63 : kind === 'elder' ? 64 : 58, h = kind === 'traveler' ? 94 : kind === 'elder' ? 84 : 88;
+      const w = kind === 'traveler' ? 63 : kind === 'elder' ? 76 : 58, h = kind === 'traveler' ? 94 : kind === 'elder' ? 104 : 88;
       ctx.drawImage(characterArt, art.x, art.y, art.w, art.h, x-w/2, y-h+bob, w, h);
       if (label) { ctx.font='14px monospace'; ctx.textAlign='center'; ctx.fillStyle='#fff'; ctx.fillText(label,x,y-h-5); }
       return;
@@ -461,6 +491,13 @@
     block(chest.x-14,chest.y-15,28,3,'#e8ae50');
     block(chest.x-18,chest.y-34,36,3,'#f3d16f');
   }
+  function drawExit(o,label){block(o.x-23,o.y+7,46,8,'#252624');block(o.x-20,o.y-34,6,42,'#766143');block(o.x+14,o.y-34,6,42,'#766143');block(o.x-22,o.y-39,44,7,'#c4a36c');block(o.x-13,o.y-26,26,31,'#333933');ctx.fillStyle='#fff0c3';ctx.font='12px monospace';ctx.textAlign='center';ctx.fillText(label,o.x,o.y-48);ctx.textAlign='start'}
+  function drawHomestead(){const x=homestead.x,y=homestead.y;block(x-104,y+32,208,15,'#2c2a24');block(x-91,y-58,182,92,'#665947');block(x-106,y-67,212,22,'#352d28');block(x-83,y-90,166,27,'#4b3c31');block(x-17,y-5,34,40,'#252522');block(x-64,y-43,28,29,'#242a29');block(x+37,y-43,28,29,'#242a29');block(x-59,y-39,18,18,'#b2774e');block(x+42,y-39,18,18,'#b2774e');block(x-4,y-4,8,8,'#e3bd69');ctx.fillStyle='#f3e2b9';ctx.font='13px monospace';ctx.textAlign='center';ctx.fillText(save.playerName?save.playerName+'の家':'主人公の家',x,y-101);ctx.textAlign='start'}
+  function drawFarm(){const x=farmPlot.x,y=farmPlot.y;block(x-77,y+15,154,11,'#423b2a');block(x-70,y-7,140,8,'#604d31');block(x-70,y+1,140,9,'#755a35');for(let i=0;i<7;i++){const px=x-56+i*18;block(px,y-23+(i%2)*6,5,22,Date.now()>=Number(save.farmReadyAt||0)?'#78934c':'#546d42');block(px-4,y-26+(i%2)*6,13,6,Date.now()>=Number(save.farmReadyAt||0)?'#9ab65c':'#748a4a')}ctx.fillStyle='#f0e3bd';ctx.font='11px monospace';ctx.textAlign='center';ctx.fillText(Date.now()>=Number(save.farmReadyAt||0)?'薬草畑':'育成中',x,y-35);ctx.textAlign='start'}
+  function drawWorkbench(){const x=workbench.x,y=workbench.y;block(x-45,y+5,90,9,'#30291f');block(x-39,y-25,78,30,'#795333');block(x-43,y-30,86,8,'#a37b4e');block(x-29,y-18,15,4,'#d1b56c');block(x+17,y-21,13,5,'#c8c2a7');ctx.fillStyle='#f3e4c1';ctx.font='11px monospace';ctx.textAlign='center';ctx.fillText('作業台',x,y-39);ctx.textAlign='start'}
+  function drawCookpot(){const x=cookpot.x,y=cookpot.y;block(x-22,y+9,44,7,'#302820');block(x-17,y-11,34,20,'#4d4540');block(x-14,y-17,28,8,'#95846a');block(x-3,y-8,6,6,'#d99b51');block(x-27,y-20,54,4,'#6b6255');ctx.fillStyle='#f0e3bd';ctx.font='11px monospace';ctx.textAlign='center';ctx.fillText('\u6599\u7406\u934b',x,y-28);ctx.textAlign='start'}
+  function drawSecretRealm(){block(0,0,WORLD_W,WORLD_H,'#151719');const a=Math.max(0,Math.floor((player.x-W/2)/100)*100),b=Math.max(250,Math.floor((player.y-H/2)/90)*90);for(let y=b;y<Math.min(WORLD_H,b+H+120);y+=90)for(let x=a;x<a+W+140;x+=100){block(x,y,94,84,'#292b2c');block(x+4,y+4,86,76,((x+y)/10)%3===0?'#343533':'#303233');block(x+7,y+12,80,3,'#454444');if((x+y)%5===0)block(x+66,y+58,18,5,'#61483b')}for(const p of [[1460,1190],[1630,1310],[1380,1330],[1690,1170]]){block(p[0]-22,p[1]+9,44,8,'#201f20');block(p[0]-18,p[1]-22,36,34,'#47413a');block(p[0]-12,p[1]-30,24,12,'#55463d');block(p[0]-4,p[1]-22,8,13,'#a56841')}ctx.fillStyle='#dfb47c';ctx.font='14px monospace';ctx.fillText('忘却の秘境',player.x-80,player.y-245)}
+  function drawSecretMonster(o){if(characterArt){ctx.drawImage(characterArt,550,830,140,145,o.x-53,o.y-112,106,112);ctx.drawImage(characterArt,1070,830,100,130,o.x+22,o.y-88,73,88)}else drawMonsterAt(o,true);ctx.fillStyle='#efd9a0';ctx.font='14px monospace';ctx.textAlign='center';ctx.fillText('秘境の魔物',o.x,o.y-120);ctx.textAlign='start'}
   function drawInn() {
     const x=village.x,y=village.y;
     block(x-82,y+27,166,13,'#292b2b');block(x-70,y+20,140,11,'#5c5549');
@@ -589,23 +626,19 @@
     ctx.setTransform(1,0,0,1,0,0);
     ctx.clearRect(0,0,W,H);
     ctx.save();ctx.translate(-camX,-camY);
-    drawAshVillage(camX,camY);drawMarshPools();drawRiverAndBridge();drawForestTrail();
-    ctx.save();ctx.beginPath();ctx.rect(0,250,900,WORLD_H-250);ctx.clip();drawAncientRuin(camX,camY);ctx.restore();
-    // The old processional road leaves the ruin gate and joins the village road.
-    ctx.beginPath();ctx.moveTo(635,320);ctx.lineTo(700,395);ctx.lineTo(835,470);ctx.lineTo(970,525);ctx.lineTo(1070,555);ctx.lineTo(1190,600);ctx.strokeStyle='#292c29';ctx.lineWidth=106;ctx.lineCap='square';ctx.lineJoin='round';ctx.stroke();
-    ctx.beginPath();ctx.moveTo(635,320);ctx.lineTo(700,395);ctx.lineTo(835,470);ctx.lineTo(970,525);ctx.lineTo(1070,555);ctx.lineTo(1190,600);ctx.strokeStyle='#806d48';ctx.lineWidth=66;ctx.lineCap='square';ctx.lineJoin='round';ctx.stroke();
-    if(battleWon) drawInn();
+    if(mapId==='ruins')drawAncientRuin(camX,camY);else if(mapId==='secret')drawSecretRealm();else{drawAshVillage(camX,camY);drawMarshPools();drawRiverAndBridge();drawForestTrail();}
+    if(mapId==='outside'){ctx.beginPath();ctx.moveTo(635,320);ctx.lineTo(700,395);ctx.lineTo(835,470);ctx.lineTo(970,525);ctx.lineTo(1070,555);ctx.lineTo(1190,600);ctx.strokeStyle='#292c29';ctx.lineWidth=106;ctx.lineCap='square';ctx.lineJoin='round';ctx.stroke();ctx.beginPath();ctx.moveTo(635,320);ctx.lineTo(700,395);ctx.lineTo(835,470);ctx.lineTo(970,525);ctx.lineTo(1070,555);ctx.lineTo(1190,600);ctx.strokeStyle='#806d48';ctx.lineWidth=66;ctx.lineCap='square';ctx.lineJoin='round';ctx.stroke();if(battleWon)drawInn();}
     const objects=[
-      {y:chest.y,draw:drawChest},
-      {y:traveler.y,draw:()=>drawPerson(traveler.x,traveler.y,'traveler','down',0,'\u30ea\u30ea\u30a2')},
-      {y:summoner.y,draw:()=>drawPerson(summoner.x,summoner.y,'summoner','down',0,'\u30ac\u30eb\u30c9')},
-      ...(battleWon?[{y:witness.y,draw:()=>drawPerson(witness.x,witness.y,'villager','down',0,'生存者')},{y:elder.y,draw:()=>drawPerson(elder.x,elder.y,'elder','down',0,'老婆')}]:[]),
-      ...(chapterStage>=5&&chapterStage<8&&Date.now()>=encounterCooldownUntil?[{y:roadGuard.y,draw:()=>drawMonsterAt(roadGuard)}]:[]),
-      ...(chapterStage>=8&&chapterStage<8.2?[{y:bellGuard.y,draw:()=>drawMonsterAt(bellGuard)}]:[]),
-      ...(chapterStage>=8.5&&chapterStage<10?[{y:chapterBoss.y,draw:()=>drawMonsterAt(chapterBoss,true)}]:[]),
-      ...clueSites.filter(o=>chapterStage===4.1&&!o.found).map(o=>({y:o.y+4,draw:()=>{block(o.x-8,o.y-8,16,16,'#c89457');block(o.x-3,o.y-3,6,6,'#f2d8a2');}})),
-      ...forestTrees.map(t=>({y:t.y,draw:()=>drawForestTree(t)})),
-      ...(chapterStage<=2?[{y:slime.y,draw:drawSlime}]:[]),
+      ...(mapId==='ruins'?[{y:traveler.y,draw:()=>drawPerson(traveler.x,traveler.y,'traveler','down',0,'リリア')},{y:chest.y,draw:drawChest},{y:exitPoint.y,draw:()=>drawExit(exitPoint,'地上へ')},{y:secretGate.y,draw:()=>drawExit(secretGate,'秘境')}]:[]),
+      ...(mapId==='outside'?[{y:homestead.y,draw:drawHomestead},{y:farmPlot.y,draw:drawFarm},{y:workbench.y,draw:drawWorkbench},{y:cookpot.y,draw:drawCookpot},{y:returnPoint.y,draw:()=>drawExit(returnPoint,'遺跡')},{y:chest.y,draw:drawChest},{y:traveler.y,draw:()=>drawPerson(traveler.x,traveler.y,'traveler','down',0,'リリア')}]:[]),
+      ...(mapId==='secret'?[{y:secretFoe.y,draw:()=>drawSecretMonster(secretFoe)},{y:secretReturn.y,draw:()=>drawExit(secretReturn,'帰還')}]:[]),
+      ...(mapId==='outside'&&battleWon?[{y:summoner.y,draw:()=>drawPerson(summoner.x,summoner.y,'summoner','down',0,'ガルド')},{y:witness.y,draw:()=>drawPerson(witness.x,witness.y,'villager','down',0,'生存者')},{y:elder.y,draw:()=>drawPerson(elder.x,elder.y,'elder','down',0,'老婆')},{y:1260,draw:()=>drawPerson(1150,1260,'villager','down',0,'村人')},{y:690,draw:()=>drawPerson(1650,690,'villager','down',0,'村人')}]:[]),
+      ...(mapId==='outside'&&chapterStage>=5&&chapterStage<8&&Date.now()>=encounterCooldownUntil?[{y:roadGuard.y,draw:()=>drawMonsterAt(roadGuard)}]:[]),
+      ...(mapId==='outside'&&chapterStage>=8&&chapterStage<8.2?[{y:bellGuard.y,draw:()=>drawMonsterAt(bellGuard)}]:[]),
+      ...(mapId==='outside'&&chapterStage>=8.5&&chapterStage<10?[{y:chapterBoss.y,draw:()=>drawMonsterAt(chapterBoss,true)}]:[]),
+      ...(mapId==='outside'?clueSites.filter(o=>chapterStage===4.1&&!o.found).map(o=>({y:o.y+4,draw:()=>{block(o.x-8,o.y-8,16,16,'#c89457');block(o.x-3,o.y-3,6,6,'#f2d8a2')}})):[]),
+      ...(mapId==='outside'?forestTrees.map(t=>({y:t.y,draw:()=>drawForestTree(t)})):[]),
+      ...(mapId==='ruins'&&chapterStage<=2?[{y:slime.y,draw:drawSlime}]:[]),
       {y:player.y,draw:drawHero},
     ];
     objects.sort((a,b)=>a.y-b.y).forEach(o=>o.draw());
@@ -665,13 +698,18 @@
       player.step+=.2*dt;
     }else player.step+=.035*dt;
     if(!encounterOverlay.classList.contains('visible')){
-      const place=player.x<900?'古代遺跡':player.x<1800?'灰に沈む村':player.x<3500?'灰冠の森':'沈み川の辺境';
+      const place=mapId==='ruins'?'古代遺跡':mapId==='secret'?'遺跡の秘境':player.x<1800?'灰に沈む村':player.x<3500?'灰冠の森':'沈み川の辺境';
       const placeLabel=worldFrame.querySelector('.world-location');if(placeLabel.dataset.place!==place){placeLabel.dataset.place=place;placeLabel.textContent=place;}
       const close=(obj,r=98)=>Math.hypot(player.x-obj.x,player.y-obj.y)<r;
-      const target=close(traveler)?'\u30ea\u30ea\u30a2\u3068\u8a71\u3059':close(summoner,120)?'\u30ac\u30eb\u30c9\u3068\u8a71\u3059':close(witness,115)?'\u751f\u5b58\u8005\u3068\u8a71\u3059':close(elder,115)?'\u8001\u5a46\u3068\u8a71\u3059':close(chapterBoss,130)?'\u9418\u697c\u3078\u9032\u3080':close(bellGuard,125)?'\u9418\u697c\u306e\u5b88\u308a\u3092\u5012\u3059':Date.now()>=encounterCooldownUntil&&close(roadGuard,120)?'\u756a\u5175\u306b\u6311\u3080':close(slime)?'\u9b54\u7269\u306b\u6311\u3080':clueSites.some(o=>!o.found&&close(o,90))?'\u624b\u304c\u304b\u308a\u3092\u8abf\u3079\u308b':close(chest,105)?'\u53e4\u6587\u66f8\u3092\u8abf\u3079\u308b':'';
+      const target=mapId==='ruins'&&chapterStage===2&&close(slime,125)?'?????':mapId==='ruins'&&close(exitPoint,130)?'地上へ出る':mapId==='outside'&&close(returnPoint,125)?'遺跡へ戻る':mapId==='ruins'&&close(secretGate,115)?'秘境へ入る':mapId==='secret'&&close(secretFoe,150)?'魔物に挑む':mapId==='outside'&&close(farmPlot,120)?'畑を調べる':mapId==='outside'&&close(workbench,110)?'作業台を使う':mapId==='ruins'&&close(traveler)?'リリアと話す':mapId==='outside'&&close(elder,115)?'老婆と話す':mapId==='outside'&&close(summoner,120)?'ガルドと話す':mapId==='outside'&&close(witness,115)?'生存者と話す':close(traveler)?'\u30ea\u30ea\u30a2\u3068\u8a71\u3059':close(summoner,120)?'\u30ac\u30eb\u30c9\u3068\u8a71\u3059':close(witness,115)?'\u751f\u5b58\u8005\u3068\u8a71\u3059':close(elder,115)?'\u8001\u5a46\u3068\u8a71\u3059':close(chapterBoss,130)?'\u9418\u697c\u3078\u9032\u3080':close(bellGuard,125)?'\u9418\u697c\u306e\u5b88\u308a\u3092\u5012\u3059':Date.now()>=encounterCooldownUntil&&close(roadGuard,120)?'\u756a\u5175\u306b\u6311\u3080':close(slime)?'\u9b54\u7269\u306b\u6311\u3080':clueSites.some(o=>!o.found&&close(o,90))?'\u624b\u304c\u304b\u308a\u3092\u8abf\u3079\u308b':close(chest,105)?'\u53e4\u6587\u66f8\u3092\u8abf\u3079\u308b':'';
       fieldAction.textContent=target||'\u8abf\u3079\u308b';
-      if(Date.now()>=encounterCooldownUntil&&chapterStage===2&&close(slime)){chapterStage=2.5;beginBattle('gate')}
-      else if(chapterStage===3&&!summonMet&&close(summoner,120))interact();
+      if(mapId==='secret'&&Date.now()>=encounterCooldownUntil&&close(secretFoe,150)){beginBattle('secret')}
+      else if(mapId==='ruins'&&Date.now()>=encounterCooldownUntil&&chapterStage===2&&close(slime)){ chapterStage=2.5;beginBattle('gate')}
+      else if(mapId==='outside'&&chapterStage===3&&!summonMet&&close(summoner,120))interact();
+      else if(mapId==='outside'&&Math.hypot(player.x-farmPlot.x,player.y-farmPlot.y)<70&&Date.now()>=Number(save.farmReadyAt||0))interact();
+      else if(mapId==='outside'&&Math.hypot(player.x-workbench.x,player.y-workbench.y)<70)interact();
+      else if(mapId==='outside'&&Math.hypot(player.x-cookpot.x,player.y-cookpot.y)<65)interact();
+      if(mapId==='ruins'&&Math.hypot(player.x-exitPoint.x,player.y-exitPoint.y)<75)fieldAction.textContent='地上へ出る';
       else if(Date.now()>=encounterCooldownUntil&&chapterStage===5&&close(roadGuard,120)){chapterStage=5.5;beginBattle('road')}
       else if(Date.now()>=encounterCooldownUntil&&chapterStage===8.5&&close(chapterBoss,130)){chapterStage=9.5;playDialogue(chapterDialogues.bossIntro,()=>beginBattle('chapterBoss'))}
     }else fieldAction.textContent='';
