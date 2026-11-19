@@ -15,6 +15,11 @@
 .prologue-name-entry[hidden]{display:none}
 .prologue-name-entry input{width:min(100%,280px);padding:10px 12px;border:1px solid #8b805f;border-radius:4px;background:#111722;color:#fff4d2;font:16px monospace}
 .prologue-name-entry input:focus{outline:2px solid #f2c879}
+.lilia-growth{margin-top:14px;padding:10px;background:#202b27;border:1px solid #65704e}
+.lilia-growth h3{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.lilia-growth h3 small{color:#cbb882;font:10px monospace}
+.party-companion-sprite{display:block;width:64px;height:76px;image-rendering:pixelated;filter:drop-shadow(0 6px 3px #101313a8)}
+.encounter-overlay.battle-open .party-companion-sprite{display:none}
 .encounter-overlay.battle-open .encounter-close{display:none}
 .encounter-overlay.battle-open .battle-escape{display:block}
 .combatant.enemy.targeted{filter:drop-shadow(0 0 7px #ffe37c);transform:translateY(-7px)}
