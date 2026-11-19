@@ -10,6 +10,9 @@
 @media(max-width:720px){.quest-hud{top:8px;right:8px;min-width:0;max-width:62%;padding:6px 8px;gap:2px}.quest-hud small{font-size:7px}.quest-hud strong{font-size:9px}.field-action{min-width:112px!important}}
 .world-minimap{position:absolute;z-index:4;top:66px;right:14px;width:220px;height:142px;border:2px solid #d3bc84;border-radius:4px;background:#18211ddd;box-shadow:3px 4px #101722b8;image-rendering:pixelated;pointer-events:none}
 .combatant.enemy{position:relative;cursor:pointer;user-select:none}
+.battle-escape{display:none;width:100%;margin-top:7px;padding:9px 12px;border:1px solid #b67c68;background:#351e1b;color:#ffe5d6;font:11px monospace;cursor:pointer}
+.encounter-overlay.battle-open .encounter-close{display:none}
+.encounter-overlay.battle-open .battle-escape{display:block}
 .combatant.enemy.targeted{filter:drop-shadow(0 0 7px #ffe37c);transform:translateY(-7px)}
 .combatant.enemy.targeted::before{content:"▼";position:absolute;z-index:5;top:-20px;left:50%;transform:translateX(-50%);color:#ffe37c;font:16px monospace;text-shadow:1px 2px #241c11;animation:target-bob .55s ease-in-out infinite alternate}
 .encounter-overlay.battle-open .enemy-side::after{content:"敵をタップして攻撃対象を選択";position:absolute;left:0;top:-27px;padding:4px 7px;background:#111b;color:#fff0c9;border:1px solid #d3bc84;font:10px monospace;white-space:nowrap}

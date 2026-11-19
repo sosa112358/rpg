@@ -67,7 +67,7 @@
   home.append(encounterOverlay);
   const encounterBody = encounterOverlay.querySelector('.encounter-body');
   quickPanes.forEach(p => encounterBody.append(p));
-  encounterOverlay.addEventListener('click', e => { if (e.target === encounterOverlay || e.target.closest('.encounter-close')) encounterOverlay.classList.remove('visible'); });
+  encounterOverlay.addEventListener('click', e => { if (e.target === encounterOverlay || e.target.closest('.encounter-close')) { if(encounterOverlay.classList.contains('battle-open'))return; encounterOverlay.classList.remove('visible'); } });
   const prologue = document.createElement('div');
   prologue.className = 'prologue-overlay visible';
   prologue.innerHTML = '<section class="prologue-box"><small>CHAPTER 01 / ASHEN VILLAGE</small><div class="dialogue-layout"><canvas class="dialogue-portrait" width="150" height="180" aria-label="話している人物"></canvas><div class="dialogue-copy"><h2></h2><p></p></div></div><button type="button" class="primary">次へ <span>▶</span></button></section>';
@@ -302,6 +302,15 @@
     else if(key==='chapterBoss'){chapterStage=10;setObjective('第1章「灰に沈む村」完');playDialogue(chapterDialogues.ending,()=>{if(typeof save!=='undefined'){save.storyDone=true;saveGame();}});}
   });
   let encounterCooldownUntil = 0;
+  window.addEventListener('rpg-battle-escaped',e=>{
+    const key=e.detail?.key;
+    if(key==='gate'&&chapterStage===2.5){chapterStage=2;setObjective('\u77f3\u6249\u306e\u7070\u55b0\u3044\u3092\u5012\u305d\u3046')}
+    else if(key==='ambush'&&chapterStage===4.2){chapterStage=4.1;pendingClue=-1;setObjective('\u6b8b\u308a\u306e\u624b\u304c\u304b\u308a\u3092\u63a2\u305d\u3046')}
+    else if(key==='road'&&chapterStage===5.5){chapterStage=5;setObjective('\u756a\u5175\u306b\u6311\u3082\u3046')}
+    else if(key==='bellGuard'&&chapterStage===8.2){chapterStage=8;setObjective('\u9418\u697c\u306e\u5b88\u308a\u3092\u5012\u305d\u3046')}
+    else if(key==='chapterBoss'&&chapterStage===9.5){chapterStage=8.5;setObjective('\u9418\u697c\u306e\u5c06\u3092\u5012\u305d\u3046')}
+    say('\u9003\u3052\u51fa\u3057\u305f\u3002\u4f53\u52e2\u3092\u6574\u3048\u3066\u518d\u6311\u6226\u3067\u304d\u308b');
+  });
   window.addEventListener('rpg-battle-close', () => {
     encounterOverlay.classList.remove('visible');
     held.clear(); resetJoystick();
@@ -312,7 +321,7 @@
   const keyMap = {ArrowUp:'up',w:'up',W:'up',ArrowDown:'down',s:'down',S:'down',ArrowLeft:'left',a:'left',A:'left',ArrowRight:'right',d:'right',D:'right'};
   window.addEventListener('keydown', e => {
     if (prologue.classList.contains('visible')) { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); prologue.querySelector('button').click(); } return; }
-    if (encounterOverlay.classList.contains('visible')) { if (e.key === 'Escape') encounterOverlay.classList.remove('visible'); return; }
+    if (encounterOverlay.classList.contains('visible')) { if (e.key === 'Escape') { if(encounterOverlay.classList.contains('battle-open'))document.querySelector('#battleEscape').click();else encounterOverlay.classList.remove('visible'); } return; }
     if (keyMap[e.key]) { held.add(keyMap[e.key]); e.preventDefault(); }
     if (e.key === ' ' || e.key === 'e' || e.key === 'E' || e.key === 'Enter') { e.preventDefault(); interact(); }
   });
@@ -326,22 +335,22 @@
   });
   fieldAction.textContent = '調べる';
   fieldAction.addEventListener('click', interact);
-  function beginBattle(key) { window.nextEncounterKey=key; say(key==='chapterBoss'?'\u7070\u9396\u306e\u5c06\u304c\u5927\u5263\u3092\u69cb\u3048\u305f\uff01':'\u9b54\u7269\u304c\u884c\u304f\u624b\u3092\u585e\u3044\u3060\uff01'); setTimeout(()=>setScreen('battle'),220); }
+  function beginBattle(key) { if(Date.now()<encounterCooldownUntil)return; window.nextEncounterKey=key; say(key==='chapterBoss'?'\u7070\u9396\u306e\u5c06\u304c\u5927\u5263\u3092\u69cb\u3048\u305f\uff01':'\u9b54\u7269\u304c\u884c\u304f\u624b\u3092\u585e\u3044\u3060\uff01'); setTimeout(()=>setScreen('battle'),220); }
   function interact() {
     const near=(obj,range=100)=>Math.hypot(player.x-obj.x,player.y-obj.y)<range;
     if(near(traveler,115)&&chapterStage===1){playDialogue(chapterDialogues.lilia,()=>{storyComplete=true;chapterStage=2;setObjective('\u77f3\u6249\u306e\u524d\u306b\u3044\u308b\u7070\u55b0\u3044\u3092\u5012\u305d\u3046');say('\u7825\u3051\u305f\u77f3\u6249\u306e\u5965\u3067\u3001\u7070\u3092\u307e\u3068\u3063\u305f\u9b54\u7269\u304c\u3046\u3054\u3081\u3044\u3066\u3044\u308b\u3002');});}
     else if(near(summoner,125)&&chapterStage===3&&!summonMet){summonMet=true;playDialogue(chapterDialogues.gald,()=>{chapterStage=4;setObjective('\u751f\u5b58\u8005\u304b\u3089\u9418\u697c\u306e\u8a71\u3092\u805e\u3053\u3046');selectQuick('gacha');});}
     else if(near(witness,115)&&chapterStage===4){playDialogue(chapterDialogues.survivor,()=>{chapterStage=4.1;setObjective('村の周辺で鐘楼へ続く手がかりを3つ探そう');});}
-    else if(chapterStage===4.1&&clueSites.some(o=>near(o,90))){const i=clueSites.findIndex(o=>near(o,90)&&!o.found);if(i>=0){playDialogue(chapterDialogues.traces[i],()=>{pendingClue=i;chapterStage=4.2;beginBattle('ambush');});}else say('この場所はもう調べた。');}
+    else if(chapterStage===4.1&&Date.now()>=encounterCooldownUntil&&clueSites.some(o=>near(o,90))){const i=clueSites.findIndex(o=>near(o,90)&&!o.found);if(i>=0){playDialogue(chapterDialogues.traces[i],()=>{pendingClue=i;chapterStage=4.2;beginBattle('ambush');});}else say('この場所はもう調べた。');}
     else if(near(roadGuard,120)&&chapterStage===5&&Date.now()>=encounterCooldownUntil){chapterStage=5.5;beginBattle('road');}
     else if(near(elder,115)&&chapterStage===6){playDialogue(chapterDialogues.elder,()=>{chapterStage=7;setObjective('\u6559\u4f1a\u8de1\u306e\u5b9d\u7bb1\u304b\u3089\u53e4\u6587\u66f8\u3092\u898b\u3064\u3051\u3088\u3046');});}
     else if(near(chest,105)&&chapterStage===7&&!chest.opened){chest.opened=true;if(typeof save!=='undefined'){save.crystals+=30;saveGame();}playDialogue(chapterDialogues.manuscript,()=>{chapterStage=8;setObjective('鐘楼の守りを破って、頂上を目指そう');});}
     else if(near(chest,105)&&chapterStage<7)say('\u53e4\u3044\u5b9d\u7bb1\u3060\u3002\u4eca\u306f\u6751\u4eba\u3092\u52a9\u3051\u3001\u6559\u4f1a\u306e\u8a18\u9332\u3092\u63a2\u3059\u306e\u304c\u5148\u3060\u3002');
-    else if(near(bellGuard,125)&&chapterStage===8){chapterStage=8.2;playDialogue(chapterDialogues.bellGuard,()=>beginBattle('bellGuard'));}
-    else if(near(chapterBoss,130)&&chapterStage===8.5){chapterStage=9.5;playDialogue(chapterDialogues.bossIntro,()=>beginBattle('chapterBoss'));}
+    else if(near(bellGuard,125)&&chapterStage===8&&Date.now()>=encounterCooldownUntil){chapterStage=8.2;playDialogue(chapterDialogues.bellGuard,()=>beginBattle('bellGuard'));}
+    else if(near(chapterBoss,130)&&chapterStage===8.5&&Date.now()>=encounterCooldownUntil){chapterStage=9.5;playDialogue(chapterDialogues.bossIntro,()=>beginBattle('chapterBoss'));}
     else if(near(traveler,115)&&chapterStage>1)say('\u30ea\u30ea\u30a2\u300c\u3053\u306e\u5263\u306b\u53cd\u5fdc\u3057\u3066\u3044\u308b\u9b54\u7269\u304c\u3044\u308b\u3002\u6c17\u3092\u3064\u3051\u3066\u300d');
     else if(near(summoner,125)&&chapterStage>3)say('\u30ac\u30eb\u30c9\u300c\u9418\u697c\u3078\u306e\u9053\u3092\u53d6\u308a\u623b\u305b\u3002\u751f\u5b58\u8005\u304c\u5730\u4e0b\u306b\u3044\u308b\u300d');
-    else if(near(slime,110)&&chapterStage===2){slimeMet=true;chapterStage=2.5;beginBattle('gate');}
+    else if(near(slime,110)&&chapterStage===2&&Date.now()>=encounterCooldownUntil){slimeMet=true;chapterStage=2.5;beginBattle('gate');}
     else say('\u7070\u306b\u8986\u308f\u308c\u305f\u907a\u8de1\u3060\u3002\u8db3\u5143\u306b\u6c17\u3092\u3064\u3051\u3066\u9032\u3082\u3046\u3002');
   }
   let messageTimer;
@@ -642,7 +651,7 @@
       if(Date.now()>=encounterCooldownUntil&&chapterStage===2&&close(slime)){chapterStage=2.5;beginBattle('gate')}
       else if(chapterStage===3&&!summonMet&&close(summoner,120))interact();
       else if(Date.now()>=encounterCooldownUntil&&chapterStage===5&&close(roadGuard,120)){chapterStage=5.5;beginBattle('road')}
-      else if(chapterStage===8.5&&close(chapterBoss,130)){chapterStage=9.5;playDialogue(chapterDialogues.bossIntro,()=>beginBattle('chapterBoss'))}
+      else if(Date.now()>=encounterCooldownUntil&&chapterStage===8.5&&close(chapterBoss,130)){chapterStage=9.5;playDialogue(chapterDialogues.bossIntro,()=>beginBattle('chapterBoss'))}
     }else fieldAction.textContent='';
     draw();requestAnimationFrame(loop);
   }
