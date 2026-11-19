@@ -25,13 +25,32 @@
   dashboard.append(field);
   const panel = document.createElement('aside');
   panel.className = 'quick-panel';
-  panel.innerHTML = '<div class="quick-tabs"><button data-quick="story" class="active">物語</button><button data-quick="battle">戦闘</button><button data-quick="gacha">召喚</button></div><div class="quick-content"><section class="quick-pane" id="quick-story"></section><section class="quick-pane" id="quick-battle"></section><section class="quick-pane" id="quick-gacha"></section></div>';
+  panel.innerHTML = '<div class="quick-tabs"><button data-quick="story" class="active">\u7269\u8a9e</button><button data-quick="battle">\u6226\u95d8</button><button data-quick="gacha">\u53ec\u559a</button><button data-quick="growth">\u80b2\u6210</button></div><div class="quick-content"><section class="quick-pane" id="quick-story"></section><section class="quick-pane" id="quick-battle"></section><section class="quick-pane" id="quick-gacha"></section><section class="quick-pane growth-pane" id="quick-growth"></section></div>';
   dashboard.append(panel);
   const storySection = document.querySelector('#story');
   const gachaSection = document.querySelector('#gacha');
   const battleSection = document.querySelector('#battle');
   document.querySelector('#quick-story').append(storySection.querySelector('.story-card'));
   document.querySelector('#quick-gacha').append(gachaSection.querySelector('.banner'), gachaSection.querySelector('.summon-actions'), gachaSection.querySelector('#roster'));
+  const quickGrowth = document.querySelector('#quick-growth');
+  quickGrowth.innerHTML = '<div class="growth-title"><div><small>STATUS / CHAPTER 01</small><h2>\u540d\u3082\u306a\u304d\u5263\u58eb</h2></div><b id="growth-level">Lv.1</b></div><div class="growth-stats"><span>HP <b id="growth-hp">120</b></span><span>MP <b id="growth-mp">24</b></span><span>\u653b\u6483 <b id="growth-atk">32</b></span></div><div class="growth-exp"><div><span>\u7d4c\u9a13\u5024</span><b id="growth-exp-label">0 / 60</b></div><i><span id="growth-exp-bar"></span></i></div><p class="growth-points">\u6280\u80fd\u30dd\u30a4\u30f3\u30c8 <b id="growth-points">0</b>&nbsp;&bull;&nbsp;\u6226\u95d8\u3067\u7d4c\u9a13\u5024\u3092\u5f97\u3066\u30ec\u30d9\u30eb\u30a2\u30c3\u30d7</p><h3>\u7fd2\u5f97\u3067\u304d\u308b\u30b9\u30ad\u30eb</h3><div class="skill-list" id="skill-list"></div>';
+  function renderGrowthPanel(){
+    const s=window.rpgSave;if(!s)return;
+    quickGrowth.querySelector('#growth-level').textContent='Lv.'+s.level;
+    quickGrowth.querySelector('#growth-hp').textContent=s.maxHp;
+    quickGrowth.querySelector('#growth-mp').textContent=s.maxMp;
+    quickGrowth.querySelector('#growth-atk').textContent=s.atk;
+    quickGrowth.querySelector('#growth-exp-label').textContent=s.exp+' / '+s.expNext;
+    quickGrowth.querySelector('#growth-exp-bar').style.width=Math.min(100,s.exp/s.expNext*100)+'%';
+    quickGrowth.querySelector('#growth-points').textContent=s.skillPoints;
+    quickGrowth.querySelector('#skill-list').innerHTML=window.rpgSkills.map(skill=>{
+      const learned=s.learnedSkills.includes(skill.id),equipped=s.equippedSkill===skill.id,available=s.level>=skill.level&&s.skillPoints>=skill.points;
+      const action=learned?'<button data-equip-skill="'+skill.id+'" '+(equipped?'disabled':'')+'>'+(equipped?'\u88c5\u5099\u4e2d':'\u30bb\u30c3\u30c8')+'</button>':available?'<button data-learn-skill="'+skill.id+'">\u7fd2\u5f97 ('+skill.points+' SP)</button>':'<button disabled>'+(s.level<skill.level?'Lv.'+skill.level+'\u3067\u89e3\u653e':'SP\u4e0d\u8db3')+'</button>';
+      return '<article class="skill-card '+(learned?'learned':'locked')+'"><div><strong>'+skill.name+'</strong><small>\u5fc5\u8981Lv '+skill.level+' ? MP '+skill.mp+'</small><p>'+skill.desc+'</p></div>'+action+'</article>';
+    }).join('');
+  }
+  quickGrowth.addEventListener('click',e=>{const learn=e.target.closest('[data-learn-skill]'),equip=e.target.closest('[data-equip-skill]');if(learn)window.rpgLearnSkill(learn.dataset.learnSkill);if(equip)window.rpgEquipSkill(equip.dataset.equipSkill);renderGrowthPanel()});
+  window.addEventListener('rpg-growth-updated',renderGrowthPanel);renderGrowthPanel();
   const quickBattle = document.querySelector('#quick-battle');
   const battleStage = battleSection.querySelector('.battlefield');
   const battleBottom = battleSection.querySelector('.battle-bottom');
@@ -172,7 +191,7 @@
     joystickKnob.style.transform=`translate(calc(-50% + ${dx*scale}px),calc(-50% + ${dy*scale}px))`;
   }
   function selectQuick(id, open = true) {
-    const chosen = id === 'gacha' ? 'gacha' : id === 'battle' ? 'battle' : 'story';
+    const chosen = ['gacha','battle','growth'].includes(id) ? id : 'story';
     quickPanes.forEach(p => p.classList.toggle('active', p.id === 'quick-' + chosen));
     document.querySelectorAll('[data-quick]').forEach(b => b.classList.toggle('active', b.dataset.quick === chosen));
     document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.screen === chosen));
@@ -215,7 +234,11 @@
   objective.innerHTML = '<small>CHAPTER 01 / NEXT</small><strong>\u30ea\u30ea\u30a2\u304b\u3089\u8a71\u3092\u805e\u3053\u3046</strong>';
   document.querySelector('.world-frame').append(objective);
   function setObjective(text) { if (objective) objective.querySelector('strong').textContent = text; }
-  const W = 1200, H = 675, WORLD_W = 2800, WORLD_H = 1800, TILE = 50;
+  const levelHud = document.createElement('div');levelHud.className='hero-progress';levelHud.innerHTML='<b>Lv.<span id="field-level">1</span></b><div><i><span id="field-exp-bar"></span></i><small id="field-exp">0 / 60 EXP</small></div><span class="hero-stats">HP <b id="field-hp">120</b>　⚔ <b id="field-atk">32</b></span>';
+  document.querySelector('.world-frame').append(levelHud);
+  function refreshLevelHud(){const s=window.rpgSave;if(!s)return;levelHud.querySelector('#field-level').textContent=s.level;levelHud.querySelector('#field-exp').textContent=s.exp+' / '+s.expNext+' EXP';levelHud.querySelector('#field-exp-bar').style.width=Math.min(100,s.exp/s.expNext*100)+'%';levelHud.querySelector('#field-hp').textContent=s.maxHp;levelHud.querySelector('#field-atk').textContent=s.atk;}
+  window.addEventListener('rpg-growth-updated',refreshLevelHud);refreshLevelHud();
+  const W = 1200, H = 675, WORLD_W = 4200, WORLD_H = 2700, TILE = 50;
   canvas.width = 1200;
   canvas.height = 675;
   ctx.imageSmoothingEnabled = false;
@@ -263,6 +286,12 @@
     {x:810,y:370},{x:790,y:900},{x:1210,y:350},{x:1280,y:620},{x:1470,y:430},
     {x:1420,y:900},{x:1690,y:700}
   ];
+  const forestTrees=[];
+  for(let gx=2800;gx<3500;gx+=108)for(let gy=300;gy<2580;gy+=112){
+    const seed=(gx*17+gy*29)%23,roadY=gx<3300?610+(gx-1800)*.22:780-(gx-3300)*.04;
+    if(seed<5||Math.abs(gy-roadY)<145)continue;
+    forestTrees.push({x:gx+(seed%31)-15,y:gy+((seed*7)%35)-17,size:.78+(seed%5)*.12});
+  }
   let storyMet = false, storyComplete = false, summonMet = false, slimeMet = false, battleWon = false, chapterStage = 0, pendingClue = -1;
   window.addEventListener('rpg-battle-won', e => {
     const key=e.detail?.key||'gate'; battleWon=true;
@@ -423,9 +452,16 @@
     block(x+9,y-14,6,29,'#383a3a');block(x-25,y+16,49,7,'#343536');
     block(x-31,y-31,12,5,'#898274');block(x+18,y-29,10,4,'#817b6e');
   }
-  function drawAncientRuin() {
+  function drawForestTree(t){
+    const {x,y,size}=t,b=(ox,oy,w,h,c)=>block(Math.round(x+ox*size),Math.round(y+oy*size),Math.max(2,Math.round(w*size)),Math.max(2,Math.round(h*size)),c);
+    b(-30,14,61,12,'#26382c');b(-7,-7,15,33,'#65482f');b(-33,-35,67,33,'#27492f');
+    b(-27,-48,54,25,'#315b35');b(-17,-61,35,22,'#3b693d');
+    b(-20,-45,13,8,'#527e42');b(9,-31,12,9,'#527a3c');b(-6,-59,8,7,'#648849');
+    b(20,-18,8,5,'#d1a04c');
+  }
+  function drawAncientRuin(camX=0,camY=0) {
     block(0,0,WORLD_W,WORLD_H,'#222528');
-    for(let y=250;y<WORLD_H;y+=50)for(let x=0;x<WORLD_W;x+=50){
+    for(let y=Math.max(250,Math.floor(camY/TILE)*TILE);y<Math.min(WORLD_H,camY+H+TILE);y+=TILE)for(let x=Math.max(0,Math.floor(camX/TILE)*TILE);x<Math.min(900,camX+W+TILE);x+=TILE){
       const k=(x/50*7+y/50*11)%9;
       block(x,y,49,49,k<3?'#41413e':k<6?'#3b3c3a':'#454440');
       block(x+2,y+2,45,2,'#50504b');block(x+2,y+4,2,40,'#484843');
@@ -447,22 +483,27 @@
       block(x,y,23,8,'#4b4942');block(x+4,y-5,11,5,'#666056');if(i%2===0)block(x+14,y+4,8,5,'#383938');
     });
   }
-  function drawAshVillage() {
+  function drawAshVillage(camX=0,camY=0) {
     block(0,0,WORLD_W,WORLD_H,'#393b35');
-    // Soft ash, scorched grass and debris break up the ruined village floor.
-    for(let y=250;y<WORLD_H;y+=38)for(let x=0;x<WORLD_W;x+=42){
+    // Tile colors shift from burned village earth into green forest and wet lowlands.
+    const x0=Math.max(0,Math.floor(camX/42)*42),x1=Math.min(WORLD_W,camX+W+84);
+    const y0=Math.max(250,Math.floor(camY/38)*38),y1=Math.min(WORLD_H,camY+H+76);
+    for(let y=y0;y<y1;y+=38)for(let x=x0;x<x1;x+=42){
       const n=(x*17+y*31)%19;
-      if(n<6)block(x+(n*3)%17,y+(n*5)%13,19+n,5,n<2?'#555346':n<4?'#46483d':'#4b493e');
+      const palette=y>1950||x>3500?['#52665c','#485b52','#5a6a5c','#43584f']:x>2750?['#526b43','#465d3c','#5c7046','#3d5539']:['#555346','#46483d','#4b493e','#5c5749'];
+      if(n<6)block(x+(n*3)%17,y+(n*5)%13,19+n,5,palette[n%palette.length]);
       if(n===8||n===13){block(x+8,y+17,4,3,'#a45b38');if(n===8)block(x+9,y+13,2,4,'#d18b4e');}
-      if(n===10)block(x+20,y+5,13,4,'#272a28');
+      if(n===10)block(x+20,y+5,13,4,x>2750?'#344731':'#272a28');
+      if(x>2750&&n===16){block(x+17,y+18,4,5,'#d4c06a');block(x+15,y+22,8,2,'#556d3d');}
+      if((y>1950||x>3500)&&n===7){block(x+31,y+9,3,18,'#6f7d53');block(x+27,y+8,10,3,'#819060');}
     }
     // Packed earth road runs through the settlement to the shelter.
-    const road=[{x:0,y:610},{x:340,y:615},{x:690,y:590},{x:980,y:620},{x:1260,y:580},{x:1560,y:625},{x:2050,y:600},{x:2420,y:650},{x:2800,y:630}];
+    const road=[{x:0,y:610},{x:340,y:615},{x:690,y:590},{x:980,y:620},{x:1260,y:580},{x:1560,y:625},{x:2050,y:600},{x:2420,y:650},{x:2800,y:630},{x:3100,y:690},{x:3300,y:730},{x:3500,y:760},{x:3800,y:710},{x:4200,y:720}];
     for(const [color,width] of [['#292c29',106],['#706047',86],['#8a7650',66]]){
       ctx.beginPath();ctx.moveTo(road[0].x,road[0].y);road.slice(1).forEach(p=>ctx.lineTo(p.x,p.y));
       ctx.strokeStyle=color;ctx.lineWidth=width;ctx.lineCap='square';ctx.lineJoin='round';ctx.stroke();
     }
-    [[110,420,104,65],[420,445,132,74],[800,360,110,68],[1380,420,124,80],[1480,810,94,66],[1960,405,138,78],[2290,780,124,74],[2540,395,118,68]].forEach(([x,y,w,h],i)=>{
+    [[110,420,104,65],[420,445,132,74],[800,360,110,68],[1380,420,124,80],[1480,810,94,66],[1960,405,138,78],[2290,780,124,74],[2540,395,118,68],[3010,470,116,68],[3750,970,130,74]].forEach(([x,y,w,h],i)=>{
       block(x-5,y+h-9,w+10,12,'#292b28');block(x+5,y+4,w-10,h-7,i%2?'#574536':'#59483a');
       block(x-10,y+1,w+20,15,'#302b28');
       for(let px=x-4;px<x+w;px+=19)block(px,y+18,4,h-24,'#382f29');
@@ -482,14 +523,43 @@
     // A dry well, abandoned cart and ash-covered fields give the outskirts landmarks.
     [[1880,720],[2360,930]].forEach(([x,y])=>{block(x-40,y+10,82,12,'#292a26');block(x-32,y-18,65,30,'#665744');block(x-25,y-12,51,20,'#262b28');block(x-35,y-24,72,7,'#927957');});
     [[2050,1120],[2110,1120],[2170,1120],[2230,1120],[2290,1120]].forEach(([x,y],i)=>{block(x,y,11,37,i%2?'#756139':'#93804b');block(x+3,y-5,5,8,'#c4a75d');});
+    // Graveyard stones and a weather-beaten shrine mark the southern woodland path.
+    [[2140,1940],[2190,1910],[2250,1960],[2310,1925],[2370,1970],[2440,1930]].forEach(([x,y],i)=>{block(x-13,y+10,27,7,'#343a37');block(x-9,y-13,18,24,i%2?'#898a7b':'#737d70');block(x-4,y-19,8,7,'#a0a18d');block(x-2,y-8,4,12,'#525b50');});
+    block(2860,1240,105,20,'#3d3c32');block(2870,1165,82,78,'#655847');block(2862,1153,98,24,'#332e29');block(2897,1190,28,52,'#262624');block(2889,1184,45,8,'#c2a25b');
+    block(3860,505,94,14,'#292a27');block(3870,425,74,83,'#55594f');block(3862,413,90,18,'#8a826b');block(3895,450,24,58,'#292b28');
+  }
+  function drawRiverAndBridge(){
+    ctx.beginPath();ctx.moveTo(3475,250);ctx.lineTo(3425,520);ctx.lineTo(3445,770);ctx.lineTo(3380,1050);ctx.lineTo(3410,1370);ctx.lineTo(3330,1690);ctx.lineTo(3360,1980);ctx.lineTo(3260,2280);ctx.lineTo(3300,2650);ctx.strokeStyle='#344039';ctx.lineWidth=176;ctx.lineJoin='round';ctx.stroke();
+    ctx.beginPath();ctx.moveTo(3475,250);ctx.lineTo(3425,520);ctx.lineTo(3445,770);ctx.lineTo(3380,1050);ctx.lineTo(3410,1370);ctx.lineTo(3330,1690);ctx.lineTo(3360,1980);ctx.lineTo(3260,2280);ctx.lineTo(3300,2650);ctx.strokeStyle='#318f89';ctx.lineWidth=132;ctx.lineJoin='round';ctx.stroke();
+    for(let i=0;i<16;i++){const x=3330+(i*67)%200,y=340+i*145;block(x,y,18,3,'#75b8a1');block(x+5,y+4,7,2,'#b4c185');}
+    // Timber bridge crosses the river where the east road continues.
+    block(3330,688,205,96,'#30291f');block(3340,695,185,80,'#795434');
+    for(let x=3348;x<3520;x+=22){block(x,698,5,73,'#4f3928');block(x+6,701,3,67,'#a37a4d');}
+    block(3324,684,12,103,'#483526');block(3526,684,12,103,'#483526');block(3320,679,220,9,'#b18b58');block(3320,782,220,9,'#4b3828');
+  }
+  function drawMarshPools(){
+    [[3700,410,170,86],[3860,1250,205,112],[3670,2050,185,96]].forEach(([x,y,w,h],i)=>{
+      block(x-8,y+8,w+16,h-12,'#394a42');block(x,y,w,h,'#387b75');block(x+12,y+8,w-24,h-18,'#45968a');
+      block(x+24,y+17,34,4,'#8ab69b');block(x+79,y+31,23,4,'#76af9e');block(x+w-43,y+h-23,29,4,'#8ab69b');
+      for(let r=0;r<5;r++){const rx=x-15+((r*53+i*29)%(w+30));const ry=y-13+((r*31+i*17)%(h+26));block(rx,ry,4,16,'#727f50');block(rx-5,ry-2,13,4,'#9b9b5c');}
+    });
+    // A half-sunken skiff rests in the eastern reeds.
+    block(3950,1540,112,20,'#403125');block(3970,1524,74,18,'#825934');block(3982,1517,50,8,'#b28653');block(4000,1488,5,36,'#644933');
+  }
+  function drawForestTrail(){
+    // Fallen trunks, stones, pale mushrooms and flower patches make small clearings readable.
+    [[2920,1040],[3140,1320],[2780,1690],[3500,1110],[3720,1540],[3960,2040]].forEach(([x,y],i)=>{block(x-28,y+8,65,11,'#27382c');block(x-22,y,52,8,i%2?'#70513a':'#614831');block(x-17,y-4,11,4,'#897052');});
+    [[3060,400],[3190,1090],[3660,1250],[3800,1800],[2860,2150],[3930,2380]].forEach(([x,y],i)=>{block(x,y,7,5,'#e1d49a');block(x+6,y+3,4,4,'#ac6974');block(x-5,y+6,18,3,i%2?'#667b4d':'#74844c');});
+    // A small campsite sits beside the south trail.
+    block(2670,1780,72,10,'#38332b');block(2681,1748,10,34,'#79523a');block(2721,1748,10,34,'#79523a');block(2678,1741,65,12,'#6d4935');block(2691,1760,31,15,'#d18443');block(2701,1753,12,12,'#f3be64');
   }
   function draw() {
     const camX=Math.max(0,Math.min(WORLD_W-W,player.x-W/2)),camY=Math.max(0,Math.min(WORLD_H-H,player.y-H/2));
     ctx.setTransform(1,0,0,1,0,0);
     ctx.clearRect(0,0,W,H);
     ctx.save();ctx.translate(-camX,-camY);
-    drawAshVillage();
-    ctx.save();ctx.beginPath();ctx.rect(0,250,900,WORLD_H-250);ctx.clip();drawAncientRuin();ctx.restore();
+    drawAshVillage(camX,camY);drawMarshPools();drawRiverAndBridge();drawForestTrail();
+    ctx.save();ctx.beginPath();ctx.rect(0,250,900,WORLD_H-250);ctx.clip();drawAncientRuin(camX,camY);ctx.restore();
     // The old processional road leaves the ruin gate and joins the village road.
     ctx.beginPath();ctx.moveTo(635,320);ctx.lineTo(700,395);ctx.lineTo(835,470);ctx.lineTo(970,525);ctx.lineTo(1070,555);ctx.lineTo(1190,600);ctx.strokeStyle='#292c29';ctx.lineWidth=106;ctx.lineCap='square';ctx.lineJoin='round';ctx.stroke();
     ctx.beginPath();ctx.moveTo(635,320);ctx.lineTo(700,395);ctx.lineTo(835,470);ctx.lineTo(970,525);ctx.lineTo(1070,555);ctx.lineTo(1190,600);ctx.strokeStyle='#806d48';ctx.lineWidth=66;ctx.lineCap='square';ctx.lineJoin='round';ctx.stroke();
@@ -503,6 +573,7 @@
       ...(chapterStage>=8&&chapterStage<8.2?[{y:bellGuard.y,draw:()=>drawMonsterAt(bellGuard)}]:[]),
       ...(chapterStage>=8.5&&chapterStage<10?[{y:chapterBoss.y,draw:()=>drawMonsterAt(chapterBoss,true)}]:[]),
       ...clueSites.filter(o=>chapterStage===4.1&&!o.found).map(o=>({y:o.y+4,draw:()=>{block(o.x-8,o.y-8,16,16,'#c89457');block(o.x-3,o.y-3,6,6,'#f2d8a2');}})),
+      ...forestTrees.map(t=>({y:t.y,draw:()=>drawForestTree(t)})),
       ...(chapterStage<=2?[{y:slime.y,draw:drawSlime}]:[]),
       {y:player.y,draw:drawHero},
     ];
@@ -535,9 +606,14 @@
   function drawMinimap(camX,camY){
     const m=miniCtx,sx=minimap.width/WORLD_W,sy=minimap.height/WORLD_H;
     m.clearRect(0,0,minimap.width,minimap.height);m.fillStyle='#242923';m.fillRect(0,0,minimap.width,minimap.height);
-    m.fillStyle='#41443a';m.fillRect(0,20,WORLD_W*sx,WORLD_H*sy);
-    m.fillStyle='#484239';m.fillRect(0,40,900*sx,(WORLD_H-40)*sy);
-    m.beginPath();m.moveTo(635*sx,320*sy);m.lineTo(700*sx,395*sy);m.lineTo(835*sx,470*sy);m.lineTo(970*sx,525*sy);m.lineTo(1190*sx,600*sy);m.lineTo(1500*sx,600*sy);m.lineTo(2050*sx,600*sy);m.lineTo(2420*sx,650*sy);m.lineTo(2800*sx,630*sy);m.strokeStyle='#a88a53';m.lineWidth=5;m.stroke();
+    m.fillStyle='#4c5041';m.fillRect(0,20,WORLD_W*sx,WORLD_H*sy);
+    m.fillStyle='#484239';m.fillRect(0,20,900*sx,(WORLD_H-20)*sy);
+    m.fillStyle='#506640';m.fillRect(2750*sx,20,750*sx,(WORLD_H-20)*sy);
+    m.fillStyle='#45685f';m.fillRect(3500*sx,20,700*sx,(WORLD_H-20)*sy);
+    m.beginPath();m.moveTo(3475*sx,250*sy);m.lineTo(3425*sx,520*sy);m.lineTo(3445*sx,770*sy);m.lineTo(3380*sx,1050*sy);m.lineTo(3410*sx,1370*sy);m.lineTo(3330*sx,1690*sy);m.lineTo(3360*sx,1980*sy);m.lineTo(3260*sx,2280*sy);m.lineTo(3300*sx,2650*sy);m.strokeStyle='#318f89';m.lineWidth=5;m.stroke();
+    m.fillStyle='#14201c';m.fillRect(3,3,34,12);m.fillStyle='#f1e4bf';m.font='bold 8px monospace';m.fillText('MAP',8,12);
+    m.font='7px monospace';m.fillStyle='#d8ccb0';m.fillText('\u907a\u8de1',25,29);m.fillText('\u6751',75,36);m.fillStyle='#c9d991';m.fillText('\u68ee',151,34);m.fillStyle='#9bd3c3';m.fillText('\u6e7f\u5730',191,37);
+    m.beginPath();m.moveTo(635*sx,320*sy);m.lineTo(700*sx,395*sy);m.lineTo(835*sx,470*sy);m.lineTo(970*sx,525*sy);m.lineTo(1190*sx,600*sy);m.lineTo(1500*sx,600*sy);m.lineTo(2050*sx,600*sy);m.lineTo(2420*sx,650*sy);m.lineTo(2800*sx,630*sy);m.lineTo(3100*sx,690*sy);m.lineTo(3300*sx,730*sy);m.lineTo(3500*sx,760*sy);m.lineTo(3800*sx,710*sy);m.lineTo(4200*sx,720*sy);m.strokeStyle='#a88a53';m.lineWidth=5;m.stroke();
     m.fillStyle='#a88958';[[110,420],[420,445],[800,360],[1380,420],[1480,810],[1960,405],[2290,780],[2540,395]].forEach(([x,y])=>m.fillRect(x*sx,y*sy,7,6));
     const target=getQuestTarget();if(target){m.fillStyle='#ffe273';m.beginPath();m.arc(target.x*sx,target.y*sy,4,0,Math.PI*2);m.fill();m.strokeStyle='#ffe273';m.lineWidth=1;m.beginPath();m.arc(target.x*sx,target.y*sy,7,0,Math.PI*2);m.stroke();}
     m.strokeStyle='#d7e9c7';m.lineWidth=1.5;m.strokeRect(camX*sx,camY*sy,W*sx,H*sy);
@@ -551,13 +627,15 @@
     if(player.moving){
       const mag=Math.hypot(dx,dy);dx/=mag;dy/=mag;
       const nx=player.x+dx*3.2*dt,ny=player.y+dy*3.2*dt;
-      const isBlocked=(x,y)=>trees.some(t=>Math.hypot(x-t.x,y-t.y)<42) || (Math.abs(x-village.x)<66&&y>village.y-83&&y<village.y+36);
+      const isBlocked=(x,y)=>trees.some(t=>Math.hypot(x-t.x,y-t.y)<42)||forestTrees.some(t=>Math.hypot(x-t.x,y-t.y)<31*t.size) || (Math.abs(x-village.x)<66&&y>village.y-83&&y<village.y+36);
       if(!isBlocked(nx,player.y)) player.x=Math.max(35,Math.min(WORLD_W-35,nx));
       if(!isBlocked(player.x,ny)) player.y=Math.max(250,Math.min(WORLD_H-30,ny));
       player.dir=Math.abs(dx)>Math.abs(dy)?(dx<0?'left':'right'):(dy<0?'up':'down');
       player.step+=.2*dt;
     }else player.step+=.035*dt;
     if(!encounterOverlay.classList.contains('visible')){
+      const place=player.x<900?'古代遺跡':player.x<1800?'灰に沈む村':player.x<3500?'灰冠の森':'沈み川の辺境';
+      const placeLabel=worldFrame.querySelector('.world-location');if(placeLabel.dataset.place!==place){placeLabel.dataset.place=place;placeLabel.textContent=place;}
       const close=(obj,r=98)=>Math.hypot(player.x-obj.x,player.y-obj.y)<r;
       const target=close(traveler)?'\u30ea\u30ea\u30a2\u3068\u8a71\u3059':close(summoner,120)?'\u30ac\u30eb\u30c9\u3068\u8a71\u3059':close(witness,115)?'\u751f\u5b58\u8005\u3068\u8a71\u3059':close(elder,115)?'\u8001\u5a46\u3068\u8a71\u3059':close(chapterBoss,130)?'\u9418\u697c\u3078\u9032\u3080':close(bellGuard,125)?'\u9418\u697c\u306e\u5b88\u308a\u3092\u5012\u3059':Date.now()>=encounterCooldownUntil&&close(roadGuard,120)?'\u756a\u5175\u306b\u6311\u3080':close(slime)?'\u9b54\u7269\u306b\u6311\u3080':clueSites.some(o=>!o.found&&close(o,90))?'\u624b\u304c\u304b\u308a\u3092\u8abf\u3079\u308b':close(chest,105)?'\u53e4\u6587\u66f8\u3092\u8abf\u3079\u308b':'';
       fieldAction.textContent=target||'\u8abf\u3079\u308b';
