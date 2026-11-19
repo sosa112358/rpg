@@ -72,12 +72,19 @@
   prologue.className = 'prologue-overlay visible';
   prologue.innerHTML = '<section class="prologue-box"><small>CHAPTER 01 / ASHEN VILLAGE</small><div class="dialogue-layout"><canvas class="dialogue-portrait" width="150" height="180" aria-label="話している人物"></canvas><div class="dialogue-copy"><h2></h2><p></p></div></div><button type="button" class="primary">次へ <span>▶</span></button></section>';
   home.append(prologue);
+  const nameEntry = document.createElement('label');
+  nameEntry.className = 'prologue-name-entry';
+  nameEntry.hidden = true;
+  nameEntry.innerHTML = 'あなたの名前 <input id="prologueHeroName" type="text" maxlength="12" autocomplete="nickname" placeholder="名前を入力">';
+  prologue.querySelector('.dialogue-copy').append(nameEntry);
+  const heroNameInput = nameEntry.querySelector('input');
+  const HERO_LABEL = '名もなき剣士';
   const opening = [
     ['名もなき剣士', '冷たい石床の上で、あなたは目を覚ました。手には見覚えのない黒い剣。自分の名前も、ここへ来た理由も思い出せない。'],
     ['遺跡の少女', '「……やっと目覚めたんだね」少女はリリアと名乗った。地上では、太陽が黒く染まった災厄『灰の夜』から、すでに300年が過ぎていた。'],
-    ['灰喰い', '「あなたは、この世界を滅ぼした存在を倒すために作られた剣士なの」その言葉を遮るように石扉が砕け、魔物が遺跡へなだれ込んだ。黒い剣を握り、戦いに備えよう。']
+    ['リリア', '「あなたは、この世界を滅ぼした存在を倒すために作られた剣士なの」その言葉を遮るように石扉が砕け、魔物が遺跡へなだれ込んだ。黒い剣を握り、戦いに備えよう。'],
+    ['リリア', '……もう魔物が来る。戦いの前に、あなたの名前を教えて。']
   ];
-  opening[2][0] = 'リリア';
   const chapterDialogues = {
     lilia: [
       ['リリア','歩ける？　あなたは祭壇のそばで眠っていたの。黒い剣だけが、ずっとあなたを待っていたみたいに残されていた。'],
@@ -143,28 +150,42 @@
   };
   function drawSpeaker(name) {
     portraitCtx.clearRect(0,0,150,180);
+    if(name===HERO_LABEL||name===window.rpgSave?.playerName){
+      const heroSheet=window.protagonistSheet;
+      if(heroSheet?.complete&&heroSheet.naturalWidth)portraitCtx.drawImage(heroSheet,400,26,158,222,12,0,126,174);
+      else if(characterArt)portraitCtx.drawImage(characterArt,680,90,80,150,12,0,126,174);
+      return;
+    }
     const crop=portraits[name]||portraits['村人'];
     if(characterArt) portraitCtx.drawImage(characterArt,crop.x,crop.y,crop.w,crop.h,8,0,134,166);
   }
   function syncStoryPortrait() {
     const canvas=document.querySelector('#storyPortrait');
-    if(!canvas||!characterArt)return;
+    if(!canvas)return;
     const title=document.querySelector('#storyTitle')?.textContent||'';
-    const speaker=title.includes('リリア')||title.includes('侵入')?'リリア':'名もなき剣士';
+    const speaker=title.includes('リリア')||title.includes('侵入')?'リリア':HERO_LABEL;
+    if(speaker===HERO_LABEL&&window.protagonistSheet?.complete&&window.protagonistSheet.naturalWidth){const c=canvas.getContext('2d');c.clearRect(0,0,canvas.width,canvas.height);c.imageSmoothingEnabled=false;c.drawImage(window.protagonistSheet,400,26,158,222,0,0,canvas.width,canvas.height);const name=document.querySelector('#storySpeaker');if(name)name.textContent=window.rpgSave?.playerName||HERO_LABEL;return;}
+    if(!characterArt)return;
     const crop=portraits[speaker];
     const c=canvas.getContext('2d');c.clearRect(0,0,canvas.width,canvas.height);c.drawImage(characterArt,crop.x,crop.y,crop.w,crop.h,0,0,canvas.width,canvas.height);
     const name=document.querySelector('#storySpeaker');if(name)name.textContent=speaker;
   }
-  function playDialogue(pages, done) { activePages=pages; openingIndex=0; dialogueDone=done||null; showOpening(); prologue.classList.add('visible'); held.clear(); }
+  window.addEventListener('rpg-player-name-changed',syncStoryPortrait);
+  function playDialogue(pages, done) { activePages=pages.map(page=>[page[0]===HERO_LABEL?(window.rpgSave?.playerName||HERO_LABEL):page[0],page[1]]); openingIndex=0; dialogueDone=done||null; showOpening(); prologue.classList.add('visible'); held.clear(); }
   const showOpening = () => {
     const page=activePages[openingIndex];
-    prologue.querySelector('h2').textContent=page[0];
+    const speaker=page[0]===HERO_LABEL?(window.rpgSave?.playerName||HERO_LABEL):page[0];
+    prologue.querySelector('h2').textContent=speaker;
     prologue.querySelector('p').textContent=page[1];
-    drawSpeaker(page[0]);
-    prologue.querySelector('button').innerHTML=openingIndex===activePages.length-1?'進む <span>▶</span>':'次へ <span>▶</span>';
+    drawSpeaker(speaker);
+    const asksForName=activePages===opening&&openingIndex===opening.length-1;
+    nameEntry.hidden=!asksForName;
+    if(asksForName){heroNameInput.value=window.rpgSave?.playerName||'';heroNameInput.focus();}
+    prologue.querySelector('button').innerHTML=openingIndex===activePages.length-1?'冒険を始める <span>▶</span>':'次へ <span>▶</span>';
   };
   showOpening();
   prologue.querySelector('button').addEventListener('click', () => {
+    if(activePages===opening&&openingIndex===opening.length-1){const name=heroNameInput.value.replace(/[<>]/g,'').trim().slice(0,12);if(!name){heroNameInput.focus();heroNameInput.setCustomValidity('名前を入力してください');heroNameInput.reportValidity();return;}heroNameInput.setCustomValidity('');if(!window.rpgSetPlayerName?.(name)){heroNameInput.focus();return;}}
     if (++openingIndex < activePages.length) showOpening();
     else {
       prologue.classList.remove('visible');
@@ -263,7 +284,7 @@
     draw();
   });
   spriteSheet.addEventListener('load', () => draw());
-  spriteSheet.addEventListener('load', () => { window.protagonistSheet=spriteSheet; window.dispatchEvent(new Event('rpg-battle-art-ready')); });
+  spriteSheet.addEventListener('load', () => { window.protagonistSheet=spriteSheet; drawSpeaker(activePages[openingIndex][0]); syncStoryPortrait(); window.dispatchEvent(new Event('rpg-battle-art-ready')); });
   spriteSheet.addEventListener('error', () => console.error('主人公スプライトを読み込めませんでした。'));
 
   const player = {x: 570, y: 590, dir: 'down', step: 0, moving: false};
