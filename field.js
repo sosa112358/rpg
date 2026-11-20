@@ -62,8 +62,8 @@
   const battleHero = document.createElement('canvas');
   battleHero.className = 'battle-hero-stand'; battleHero.width = 240; battleHero.height = 300; battleHero.setAttribute('aria-label','主人公');
   battleStage.append(battleBottom,battleHero);
-  quickBattle.append(battleSection.querySelector('.battle-head'),battleStage);
-  storySection.remove(); gachaSection.remove(); battleSection.remove();
+  battleSection.classList.remove('screen','active');battleSection.classList.add('battle-shell');battleSection.append(battleSection.querySelector('.battle-head'),battleStage);quickBattle.append(battleSection);
+  storySection.remove(); gachaSection.remove();
   document.querySelector('.home-lower')?.remove();
   const quickPanes = [...document.querySelectorAll('.quick-pane')];
   const encounterOverlay = document.createElement('div');
@@ -261,9 +261,10 @@
   objective.className = 'quest-hud';
   objective.innerHTML = '<small>CHAPTER 01 / NEXT</small><strong>\u30ea\u30ea\u30a2\u304b\u3089\u8a71\u3092\u805e\u3053\u3046</strong>';
   document.querySelector('.world-frame').append(objective);
-  function setObjective(text) { if (objective) objective.querySelector('strong').textContent = text; saveWorld(); }
+  let storyObjective='';
+  function setObjective(text) { storyObjective=text;if (objective) objective.querySelector('strong').textContent = text; saveWorld(); }
   function saveWorld(){
-    try{localStorage.setItem('eldia-world-state',JSON.stringify({chapterStage,storyMet,storyComplete,summonMet,slimeMet,battleWon,pendingClue,playerX:player.x,playerY:player.y,playerDir:player.dir,travelerX:traveler.x,travelerY:traveler.y,chestOpened:chest.opened,clueFound:clueSites.map(o=>o.found),houseReturnX:currentHouseReturn.x,houseReturnY:currentHouseReturn.y,houseTitle:currentHouseTitle,objective:objective?.querySelector('strong')?.textContent||'',mapId}));}catch{}
+    try{localStorage.setItem('eldia-world-state',JSON.stringify({chapterStage,storyMet,storyComplete,summonMet,slimeMet,battleWon,pendingClue,playerX:player.x,playerY:player.y,playerDir:player.dir,travelerX:traveler.x,travelerY:traveler.y,chestOpened:chest.opened,clueFound:clueSites.map(o=>o.found),houseReturnX:currentHouseReturn.x,houseReturnY:currentHouseReturn.y,houseTitle:currentHouseTitle,objective:storyObjective||objective?.querySelector('strong')?.textContent||'',mapId}));}catch{}
   }
   const levelHud = document.createElement('div');levelHud.className='hero-progress';levelHud.innerHTML='<b>Lv.<span id="field-level">1</span></b><div><i><span id="field-exp-bar"></span></i><small id="field-exp">0 / 60 EXP</small></div><span class="hero-stats">HP <b id="field-hp">120</b> / ATK <b id="field-atk">32</b> / MAG <b id="field-magic">20</b></span>';
   document.querySelector('.world-frame').append(levelHud);
@@ -302,6 +303,7 @@
   const exitPoint={x:870,y:590},returnPoint={x:965,y:550},secretGate={x:720,y:1020},secretReturn={x:1380,y:1390},secretFoe={x:1510,y:1250},homestead={x:1270,y:875},farmPlot={x:1300,y:1015},workbench={x:1500,y:875},cookpot={x:1510,y:1015},homeInsideDoor={x:1550,y:1650};
   window.rpgSave.structures={farm:false,workbench:false,...(window.rpgSave.structures||{})};
   const player = {x:!savedWorld.mapId?(Number(savedWorld.chapterStage)>=3?returnPoint.x:690):(Number(savedWorld.playerX)||570),y:!savedWorld.mapId?(Number(savedWorld.chapterStage)>=3?returnPoint.y:565):(Number(savedWorld.playerY)||590),dir:savedWorld.playerDir||'down',step:0,moving:false};
+  if(mapId==='ruins'){player.x=Math.max(45,Math.min(1755,player.x));player.y=Math.max(300,Math.min(1225,player.y));}
   const traveler = {x:Number(savedWorld.travelerX)||690,y:Number(savedWorld.travelerY)||565};
   const chest = {x:760,y:730,opened:Boolean(savedWorld.chestOpened)};
   const slime = {x: 790, y: 680};
@@ -385,7 +387,7 @@
   });
   fieldAction.textContent = '調べる';
   fieldAction.addEventListener('click', interact);
-  function beginBattle(key) { if(Date.now()<encounterCooldownUntil||encounterLaunching)return; encounterLaunching=true;saveWorld(); window.nextEncounterKey=key; say(key==='chapterBoss'?'\u7070\u9396\u306e\u5c06\u304c\u5927\u5263\u3092\u69cb\u3048\u305f\uff01':'\u9b54\u7269\u304c\u884c\u304f\u624b\u3092\u585e\u3044\u3060\uff01'); setTimeout(()=>{encounterLaunching=false;setScreen('battle')},220); }
+  function beginBattle(key) { if(Date.now()<encounterCooldownUntil||encounterLaunching)return; encounterLaunching=true;saveWorld(); window.nextEncounterKey=key; say(key==='chapterBoss'?'\u7070\u9396\u306e\u5c06\u304c\u5927\u5263\u3092\u69cb\u3048\u305f\uff01':'\u9b54\u7269\u304c\u884c\u304f\u624b\u3092\u585e\u3044\u3060\uff01'); setTimeout(()=>{encounterLaunching=false;selectQuick('battle')},220); }
   function interact() {
     const near=(obj,range=100)=>Math.hypot(player.x-obj.x,player.y-obj.y)<range;
     if(mapId==='ruins'&&near(traveler,115)&&chapterStage===1){playDialogue(chapterDialogues.lilia,()=>{storyComplete=true;chapterStage=2;setObjective('遺跡の出口から村へ出よう');say('石扉の向こうに、地上へ続く出口がある。');});}
@@ -551,8 +553,8 @@
       if(k===0)block(x+34,y+27,8,3,'#343638');
     }
     // Perimeter masonry makes the ruin a readable enclosed dungeon instead of an endless floor.
-    for(let x=0;x<1800;x+=90){block(x,250,88,24,'#68645b');block(x,2280,88,24,'#68645b');block(x+5,254,5,17,'#888176');block(x+5,2284,5,17,'#888176')}
-    for(let y=270;y<2280;y+=82){block(0,y,24,80,'#68645b');block(1776,y,24,80,'#68645b');block(3,y+7,17,5,'#888176');block(1780,y+7,17,5,'#888176')}
+    for(let x=0;x<1800;x+=90){block(x,250,88,24,'#68645b');block(x,1270,88,24,'#68645b');block(x+5,254,5,17,'#888176');block(x+5,1274,5,17,'#888176')}
+    for(let y=270;y<1270;y+=82){block(0,y,24,80,'#68645b');block(1776,y,24,80,'#68645b');block(3,y+7,17,5,'#888176');block(1780,y+7,17,5,'#888176')}
     // The sealed stairway and cracked gate mark the only route into the ruin.
     block(470,236,330,72,'#171a1c');block(490,222,290,26,'#585650');
     for(let y=246;y<320;y+=18){block(520,y,230,8,'#777165');block(530,y+8,210,7,'#454440')}
@@ -673,9 +675,7 @@
     if(nearby){block(player.x-4,player.y-112,8,5,'#f4d483');block(player.x-10,player.y-107,20,4,'#f4d483')}
     ctx.restore();drawMinimap(camX,camY);
   }
-  function getQuestTarget(){
-    if(mapId==='house')return homeInsideDoor;
-    if(mapId==='secret')return secretFoe;
+  function getStoryQuestTarget(){
     if(chapterStage<=1)return traveler;
     if(chapterStage===2||chapterStage===2.5)return slime;
     if(chapterStage===3||chapterStage===4)return chapterStage===3?summoner:witness;
@@ -688,21 +688,41 @@
     if(chapterStage===8.5||chapterStage===9.5)return chapterBoss;
     return null;
   }
+  function getQuestTarget(){
+    if(mapId==='house')return homeInsideDoor;
+    if(mapId==='secret')return secretFoe;
+    const target=getStoryQuestTarget();
+    if(mapId==='outside'&&chapterStage<=2.5)return returnPoint;
+    if(mapId==='ruins'&&chapterStage>=3&&chapterStage!==7)return exitPoint;
+    return target;
+  }
   function drawMinimap(camX,camY){
-    const m=miniCtx,sx=minimap.width/WORLD_W,sy=minimap.height/WORLD_H;
-    m.clearRect(0,0,minimap.width,minimap.height);m.fillStyle='#242923';m.fillRect(0,0,minimap.width,minimap.height);
-    m.fillStyle='#4c5041';m.fillRect(0,20,WORLD_W*sx,WORLD_H*sy);
-    m.fillStyle='#484239';m.fillRect(0,20,900*sx,(WORLD_H-20)*sy);
-    m.fillStyle='#506640';m.fillRect(2750*sx,20,750*sx,(WORLD_H-20)*sy);
-    m.fillStyle='#45685f';m.fillRect(3500*sx,20,700*sx,(WORLD_H-20)*sy);
-    m.beginPath();m.moveTo(3475*sx,250*sy);m.lineTo(3425*sx,520*sy);m.lineTo(3445*sx,770*sy);m.lineTo(3380*sx,1050*sy);m.lineTo(3410*sx,1370*sy);m.lineTo(3330*sx,1690*sy);m.lineTo(3360*sx,1980*sy);m.lineTo(3260*sx,2280*sy);m.lineTo(3300*sx,2650*sy);m.strokeStyle='#318f89';m.lineWidth=5;m.stroke();
-    m.fillStyle='#14201c';m.fillRect(3,3,34,12);m.fillStyle='#f1e4bf';m.font='bold 8px monospace';m.fillText('MAP',8,12);
-    m.font='7px monospace';m.fillStyle='#d8ccb0';m.fillText('\u907a\u8de1',25,29);m.fillText('\u6751',75,36);m.fillStyle='#c9d991';m.fillText('\u68ee',151,34);m.fillStyle='#9bd3c3';m.fillText('\u6e7f\u5730',191,37);
-    m.beginPath();m.moveTo(635*sx,320*sy);m.lineTo(700*sx,395*sy);m.lineTo(835*sx,470*sy);m.lineTo(970*sx,525*sy);m.lineTo(1190*sx,600*sy);m.lineTo(1500*sx,600*sy);m.lineTo(2050*sx,600*sy);m.lineTo(2420*sx,650*sy);m.lineTo(2800*sx,630*sy);m.lineTo(3100*sx,690*sy);m.lineTo(3300*sx,730*sy);m.lineTo(3500*sx,760*sy);m.lineTo(3800*sx,710*sy);m.lineTo(4200*sx,720*sy);m.strokeStyle='#a88a53';m.lineWidth=5;m.stroke();
-    m.fillStyle='#a88958';[[110,420],[420,445],[800,360],[1380,420],[1480,810],[1960,405],[2290,780],[2540,395]].forEach(([x,y])=>m.fillRect(x*sx,y*sy,7,6));
-    const target=getQuestTarget();if(target){m.fillStyle='#ffe273';m.beginPath();m.arc(target.x*sx,target.y*sy,4,0,Math.PI*2);m.fill();m.strokeStyle='#ffe273';m.lineWidth=1;m.beginPath();m.arc(target.x*sx,target.y*sy,7,0,Math.PI*2);m.stroke();}
-    m.strokeStyle='#d7e9c7';m.lineWidth=1.5;m.strokeRect(camX*sx,camY*sy,W*sx,H*sy);
-    m.fillStyle='#fff';m.beginPath();m.arc(player.x*sx,player.y*sy,3,0,Math.PI*2);m.fill();
+    const m=miniCtx; m.clearRect(0,0,minimap.width,minimap.height);m.fillStyle='#171d1b';m.fillRect(0,0,minimap.width,minimap.height);
+    const label=mapId==='ruins'?'遺跡':mapId==='secret'?'秘境':mapId==='house'?'家':'村';
+    m.fillStyle='#14201c';m.fillRect(3,3,42,13);m.fillStyle='#f1e4bf';m.font='bold 9px monospace';m.fillText(label,8,13);
+    if(mapId!=='outside'){
+      let bounds=mapId==='ruins'?{x:0,y:250,w:1800,h:1050}:mapId==='secret'?{x:1200,y:1080,w:650,h:470}:{x:1220,y:340,w:500,h:1760};
+      const area={x:6,y:20,w:minimap.width-12,h:minimap.height-26},scale=Math.min(area.w/bounds.w,area.h/bounds.h),dw=bounds.w*scale,dh=bounds.h*scale,ox=area.x+(area.w-dw)/2,oy=area.y+(area.h-dh)/2;
+      m.fillStyle=mapId==='secret'?'#292b2c':mapId==='house'?'#6b5945':'#41413e';m.fillRect(ox,oy,dw,dh);
+      if(mapId==='ruins'){
+        m.strokeStyle='#8a8579';m.lineWidth=3;m.strokeRect(ox+1,oy+1,dw-2,dh-2);
+        for(let i=1;i<10;i++){m.strokeStyle='#514f49';m.lineWidth=1;m.beginPath();m.moveTo(ox,oy+dh*i/10);m.lineTo(ox+dw,oy+dh*i/10);m.stroke()}
+        for(const p of [[210,515],[405,845],[925,790],[1020,420],[695,935],[1510,580]]){m.fillStyle='#706b61';m.fillRect(ox+(p[0]-bounds.x)*scale,oy+(p[1]-bounds.y)*scale,5,4)}
+      }else if(mapId==='secret'){m.strokeStyle='#534c42';m.lineWidth=2;m.strokeRect(ox+1,oy+1,dw-2,dh-2)}
+      else{m.strokeStyle='#352c26';m.lineWidth=4;m.strokeRect(ox,oy,dw,dh);m.fillStyle='#a17b4f';m.fillRect(ox+dw*.48,oy+dh*.7,dw*.08,dh*.08)}
+      const quest=getQuestTarget(),point=(o,color,r)=>{if(!o)return;const px=ox+(o.x-bounds.x)*scale,py=oy+(o.y-bounds.y)*scale;if(px<ox||px>ox+dw||py<oy||py>oy+dh)return;m.fillStyle=color;m.beginPath();m.arc(px,py,r,0,Math.PI*2);m.fill()};
+      point(quest,'#ffe273',3.5);point(player,'#fff',2.5);return;
+    }
+    const sx=minimap.width/WORLD_W,sy=(minimap.height-20)/(WORLD_H-250);
+    m.fillStyle='#4c5041';m.fillRect(0,20,WORLD_W*sx,minimap.height-20);
+    m.fillStyle='#484239';m.fillRect(0,20,900*sx,minimap.height-20);
+    m.fillStyle='#506640';m.fillRect(2750*sx,20,750*sx,minimap.height-20);
+    m.fillStyle='#45685f';m.fillRect(3500*sx,20,700*sx,minimap.height-20);
+    m.beginPath();m.moveTo(3475*sx,20+70*sy);m.lineTo(3425*sx,20+270*sy);m.lineTo(3445*sx,20+520*sy);m.lineTo(3380*sx,20+800*sy);m.lineTo(3410*sx,20+1120*sy);m.lineTo(3330*sx,20+1440*sy);m.lineTo(3360*sx,20+1730*sy);m.lineTo(3260*sx,20+2030*sy);m.lineTo(3300*sx,20+2400*sy);m.strokeStyle='#318f89';m.lineWidth=5;m.stroke();
+    m.beginPath();m.moveTo(635*sx,20+70*sy);m.lineTo(700*sx,20+145*sy);m.lineTo(835*sx,20+220*sy);m.lineTo(970*sx,20+275*sy);m.lineTo(1190*sx,20+350*sy);m.lineTo(1500*sx,20+350*sy);m.lineTo(2050*sx,20+350*sy);m.lineTo(2420*sx,20+400*sy);m.lineTo(2800*sx,20+380*sy);m.lineTo(3100*sx,20+440*sy);m.lineTo(3500*sx,20+510*sy);m.lineTo(3800*sx,20+460*sy);m.lineTo(4200*sx,20+470*sy);m.strokeStyle='#a88a53';m.lineWidth=4;m.stroke();
+    m.fillStyle='#a88958';[[110,420],[420,445],[800,360],[1380,420],[1480,810],[1960,405],[2290,780],[2540,395],[3010,470],[3750,970]].forEach(([x,y])=>m.fillRect(x*sx,(y-250)*sy+20,5,4));
+    const target=getQuestTarget();if(target){const tx=target.x*sx,ty=(target.y-250)*sy+20;m.fillStyle='#ffe273';m.beginPath();m.arc(tx,ty,4,0,Math.PI*2);m.fill();m.strokeStyle='#ffe273';m.lineWidth=1;m.beginPath();m.arc(tx,ty,7,0,Math.PI*2);m.stroke()}
+    const py=(player.y-250)*sy+20;m.fillStyle='#fff';m.beginPath();m.arc(player.x*sx,py,3,0,Math.PI*2);m.fill();
   }
   let last=0;
   function loop(now){
@@ -712,7 +732,7 @@
     if(player.moving){
       const mag=Math.hypot(dx,dy);dx/=mag;dy/=mag;
       const nx=player.x+dx*3.2*dt,ny=player.y+dy*3.2*dt;
-      const isBlocked=(x,y)=>(mapId==='house'&&(x<1220||x>1720||y<340||y>2070))||(mapId==='ruins'&&(x<36||x>1764||y<286||y>2244))||(mapId==='outside'&&villageHomes.some(h=>x>h.x-8&&x<h.x+h.w+8&&y>h.y+24&&y<h.y+h.h+4&&Math.abs(x-h.doorX)>18))||trees.some(t=>Math.hypot(x-t.x,y-t.y)<42)||forestTrees.some(t=>Math.hypot(x-t.x,y-t.y)<31*t.size) || (Math.abs(x-village.x)<66&&y>village.y-83&&y<village.y+36);
+      const isBlocked=(x,y)=>(mapId==='house'&&(x<1220||x>1720||y<340||y>2070))||(mapId==='ruins'&&(x<36||x>1764||y<286||y>1244))||(mapId==='outside'&&villageHomes.some(h=>x>h.x-8&&x<h.x+h.w+8&&y>h.y+24&&y<h.y+h.h+4&&Math.abs(x-h.doorX)>18))||trees.some(t=>Math.hypot(x-t.x,y-t.y)<42)||forestTrees.some(t=>Math.hypot(x-t.x,y-t.y)<31*t.size) || (Math.abs(x-village.x)<66&&y>village.y-83&&y<village.y+36);
       if(!isBlocked(nx,player.y)) player.x=Math.max(35,Math.min(WORLD_W-35,nx));
       if(!isBlocked(player.x,ny)) player.y=Math.max(250,Math.min(WORLD_H-30,ny));
       player.dir=Math.abs(dx)>Math.abs(dy)?(dx<0?'left':'right'):(dy<0?'up':'down');
@@ -720,7 +740,7 @@
     }else player.step+=.035*dt;
     if(!encounterOverlay.classList.contains('visible')){
       const place=mapId==='ruins'?'古代遺跡':mapId==='secret'?'遺跡の秘境':mapId==='house'?'主人公の家':player.x<1800?'灰に沈む村':player.x<3500?'灰冠の森':'沈み川の辺境';
-      const placeLabel=worldFrame.querySelector('.world-location');if(placeLabel.dataset.place!==place){placeLabel.dataset.place=place;placeLabel.textContent=place;}
+      const placeLabel=worldFrame.querySelector('.world-location');if(placeLabel.dataset.place!==place){placeLabel.dataset.place=place;placeLabel.textContent=place;}const guide=mapId==='outside'&&chapterStage<=2.5?'遺跡の入口へ向かおう':mapId==='ruins'&&chapterStage>=3&&chapterStage!==7?'地上へ出て村へ向かおう':mapId==='house'?'玄関から外へ出よう':storyObjective;if(guide)objective.querySelector('strong').textContent=guide;
       const close=(obj,r=98)=>Math.hypot(player.x-obj.x,player.y-obj.y)<r;
       const villageDoor=mapId==='outside'?villageHomes.find(h=>close({x:h.doorX,y:h.doorY},76)):null;
       const target=mapId==='ruins'&&chapterStage===2&&close(slime,125)?'魔物に挑む':mapId==='ruins'&&close(exitPoint,130)?'地上へ出る':mapId==='outside'&&close(returnPoint,125)?'遺跡へ戻る':mapId==='outside'&&villageDoor?'村人の家に入る':mapId==='house'&&close(homeInsideDoor,100)?'外へ出る':mapId==='ruins'&&close(secretGate,115)?'秘境へ入る':mapId==='secret'&&close(secretFoe,150)?'魔物に挑む':mapId==='secret'&&close(secretReturn,115)?'遺跡へ戻る':mapId==='outside'&&close(farmPlot,120)?'畑を調べる':mapId==='outside'&&close(workbench,110)?'作業台を使う':mapId==='ruins'&&close(traveler)?'リリアと話す':mapId==='outside'&&close(elder,115)?'老婆と話す':mapId==='outside'&&close(summoner,120)?'ガルドと話す':mapId==='outside'&&close(witness,115)?'生存者と話す':close(traveler)?'\u30ea\u30ea\u30a2\u3068\u8a71\u3059':close(summoner,120)?'\u30ac\u30eb\u30c9\u3068\u8a71\u3059':close(witness,115)?'\u751f\u5b58\u8005\u3068\u8a71\u3059':close(elder,115)?'\u8001\u5a46\u3068\u8a71\u3059':close(chapterBoss,130)?'\u9418\u697c\u3078\u9032\u3080':close(bellGuard,125)?'\u9418\u697c\u306e\u5b88\u308a\u3092\u5012\u3059':Date.now()>=encounterCooldownUntil&&close(roadGuard,120)?'\u756a\u5175\u306b\u6311\u3080':close(slime)?'\u9b54\u7269\u306b\u6311\u3080':clueSites.some(o=>!o.found&&close(o,90))?'\u624b\u304c\u304b\u308a\u3092\u8abf\u3079\u308b':close(chest,105)?'\u53e4\u6587\u66f8\u3092\u8abf\u3079\u308b':'';
