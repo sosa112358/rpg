@@ -1,3 +1,4 @@
+if(localStorage.getItem('eldia-resetting')==='1'){localStorage.removeItem('hoshiyomi-save');localStorage.removeItem('eldia-world-state');localStorage.removeItem('eldia-resetting')}
 const chapters=[{"id":1,"title":"灰に沈む村","subtitle":"村人の救出から鐘楼の将との決着まで。目標プレイ時間：約2時間。","status":"プレイ可能","current":true}];
 const story=[{"title":"名もなき剣士","text":"冷たい石の床で、あなたは目を覚ました。ここは地下深くに埋もれた古代遺跡。手には見覚えのない黒い剣がある。\n\n自分の名も、ここへ来た理由も思い出せない。地上では、太陽が黒く染まり灰が降り続いた「灰の夜」から、すでに300年が過ぎていた。"},{"title":"リリア","text":"「……やっと目覚めたんだね」\n\n遺跡の奥から現れた少女は、リリアと名乗った。彼女は黒い剣を見つめ、静かに告げる。\n\n「あなたは、この世界を滅ぼした存在を倒すために作られた剣士なの」"},{"title":"遺跡への侵入者","text":"そのとき、閉ざされていた石扉が破れ、灰をまとった魔物がなだれ込んだ。\n\nリリアの声が響く。「剣を取って！」\n\n過去も名前も分からないまま、剣士は黒い剣を握る。生き延びるための、最初の戦いが始まる。"}];
 const characters=[{"name":"リナ","icon":"🧙🏻‍♀️","rarity":5,"desc":"古代遺跡で剣士を待ち続けていた、謎を抱く少女。"},{"name":"カイ","icon":"🗡️","rarity":4,"desc":"灰に沈む村を守ってきた、寡黙な元騎士。"},{"name":"ミオ","icon":"🦊","rarity":3,"desc":"灰の荒野で生き残った、薬草師見習い。"},{"name":"セラ","icon":"🧝","rarity":5,"desc":"古代の祈りを継ぐ、神殿の末裔。"},{"name":"ポポ","icon":"🐥","rarity":3,"desc":"灰の中から現れた、小さな魔物の子。"}];
@@ -47,6 +48,7 @@ document.querySelector('#topCharacters').addEventListener('click',()=>window.rpg
 const optionsDialog=document.querySelector('#optionsDialog');
 document.querySelector('#topOptions').addEventListener('click',()=>{refreshOptions();optionsDialog.showModal()});
 document.querySelector('#optionsClose').addEventListener('click',()=>optionsDialog.close());
+document.querySelector('#resetGame').addEventListener('click',()=>{if(!window.confirm('セーブデータをすべて消去して、最初から始めますか？'))return;localStorage.setItem('eldia-resetting','1');localStorage.removeItem('hoshiyomi-save');localStorage.removeItem('eldia-world-state');location.reload()});
 optionsDialog.addEventListener('click',e=>{if(e.target===optionsDialog)optionsDialog.close()});
 document.querySelectorAll('[data-option-tab]').forEach(button=>button.addEventListener('click',()=>{document.querySelectorAll('[data-option-tab]').forEach(b=>b.classList.toggle('active',b===button));document.querySelectorAll('.options-content').forEach(panel=>panel.hidden=panel.id!=='options'+button.dataset.optionTab[0].toUpperCase()+button.dataset.optionTab.slice(1));if(button.dataset.optionTab==='achievements'||button.dataset.optionTab==='save')refreshOptions()}));
 const soundSetting=document.querySelector('#settingSound');soundSetting.checked=save.settings.sound!==false;soundSetting.addEventListener('change',()=>{save.settings.sound=soundSetting.checked;saveGame();document.querySelector('#soundBtn').textContent=soundSetting.checked?'♫':'♪'});

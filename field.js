@@ -265,6 +265,7 @@
   let storyObjective='';
   function setObjective(text) { storyObjective=text;if (objective) objective.querySelector('strong').textContent = text; saveWorld(); }
   function saveWorld(){
+    if(localStorage.getItem('eldia-resetting')==='1')return;
     try{localStorage.setItem('eldia-world-state',JSON.stringify({chapterStage,storyMet,storyComplete,summonMet,slimeMet,battleWon,pendingClue,playerX:player.x,playerY:player.y,playerDir:player.dir,travelerX:traveler.x,travelerY:traveler.y,chestOpened:chest.opened,clueFound:clueSites.map(o=>o.found),houseReturnX:currentHouseReturn.x,houseReturnY:currentHouseReturn.y,houseTitle:currentHouseTitle,objective:storyObjective||objective?.querySelector('strong')?.textContent||'',mapId}));}catch{}
   }
   const levelHud = document.createElement('div');levelHud.className='hero-progress';levelHud.innerHTML='<b>Lv.<span id="field-level">1</span></b><div><i><span id="field-exp-bar"></span></i><small id="field-exp">0 / 60 EXP</small></div><span class="hero-stats">HP <b id="field-hp">120</b> / ATK <b id="field-atk">32</b> / MAG <b id="field-magic">20</b></span>';
@@ -304,7 +305,7 @@
   const exitPoint={x:870,y:590},returnPoint={x:965,y:550},secretGate={x:720,y:1020},secretReturn={x:1380,y:1390},secretFoe={x:1510,y:1250},homestead={x:1270,y:875},farmPlot={x:1300,y:1015},workbench={x:1500,y:875},cookpot={x:1510,y:1015},homeInsideDoor={x:1550,y:1650};
   window.rpgSave.structures={farm:false,workbench:false,...(window.rpgSave.structures||{})};
   const player = {x:!savedWorld.mapId?(Number(savedWorld.chapterStage)>=3?returnPoint.x:690):(Number(savedWorld.playerX)||570),y:!savedWorld.mapId?(Number(savedWorld.chapterStage)>=3?returnPoint.y:565):(Number(savedWorld.playerY)||590),dir:savedWorld.playerDir||'down',step:0,moving:false};
-  if(mapId==='ruins'){player.x=Math.max(45,Math.min(1755,player.x));player.y=Math.max(300,Math.min(1225,player.y));}
+  if(mapId==='ruins'){player.x=Math.max(45,Math.min(1755,player.x));player.y=Math.max(300,Math.min(1225,player.y));}else if(mapId==='secret'){player.x=Math.max(1240,Math.min(1810,player.x));player.y=Math.max(1120,Math.min(1500,player.y));}else if(mapId==='outside'){player.x=Math.max(55,Math.min(WORLD_W-55,player.x));player.y=Math.max(300,Math.min(WORLD_H-55,player.y));}
   const traveler = {x:Number(savedWorld.travelerX)||690,y:Number(savedWorld.travelerY)||565};
   const chest = {x:760,y:730,opened:Boolean(savedWorld.chestOpened)};
   const slime = {x: 790, y: 680};
@@ -511,10 +512,10 @@
   function drawFarm(){const x=farmPlot.x,y=farmPlot.y;block(x-77,y+15,154,11,'#423b2a');block(x-70,y-7,140,8,'#604d31');block(x-70,y+1,140,9,'#755a35');for(let i=0;i<7;i++){const px=x-56+i*18;block(px,y-23+(i%2)*6,5,22,Date.now()>=Number(save.farmReadyAt||0)?'#78934c':'#546d42');block(px-4,y-26+(i%2)*6,13,6,Date.now()>=Number(save.farmReadyAt||0)?'#9ab65c':'#748a4a')}ctx.fillStyle='#f0e3bd';ctx.font='11px monospace';ctx.textAlign='center';ctx.fillText(Date.now()>=Number(save.farmReadyAt||0)?'薬草畑':'育成中',x,y-35);ctx.textAlign='start'}
   function drawWorkbench(){const x=workbench.x,y=workbench.y;block(x-45,y+5,90,9,'#30291f');block(x-39,y-25,78,30,'#795333');block(x-43,y-30,86,8,'#a37b4e');block(x-29,y-18,15,4,'#d1b56c');block(x+17,y-21,13,5,'#c8c2a7');ctx.fillStyle='#f3e4c1';ctx.font='11px monospace';ctx.textAlign='center';ctx.fillText('作業台',x,y-39);ctx.textAlign='start'}
   function drawConstruction(o,label,cost){const x=o.x,y=o.y;block(x-55,y+12,110,8,'#342f26');block(x-48,y-12,96,5,'#8b744f');block(x-48,y+2,96,5,'#8b744f');for(let i=0;i<4;i++)block(x-43+i*28,y-8,5,18,'#a48c61');ctx.fillStyle='#f4e6c4';ctx.font='11px monospace';ctx.textAlign='center';ctx.fillText(label+'を建てる',x,y-27);ctx.fillStyle='#d6c69f';ctx.fillText(cost,x,y+34);ctx.fillStyle='#d6c69f';ctx.fillText('所持 木'+(window.rpgSave.inventory.wood||0)+' 石'+(window.rpgSave.inventory.stone||0),x,y+49);ctx.textAlign='start'}
-  function drawHouseInterior(){block(0,0,WORLD_W,WORLD_H,'#4a3d31');for(let y=300;y<WORLD_H;y+=88)for(let x=0;x<WORLD_W;x+=92){block(x,y,88,84,'#5c4c3a');block(x+3,y+3,82,2,'#756044');block(x+3,y+5,2,75,'#514333')}block(1180,300,18,2200,'#2d2925');block(1740,300,18,2200,'#2d2925');block(1180,300,578,18,'#2d2925');block(1180,2100,578,18,'#2d2925');block(1320,1180,300,120,'#382b25');block(1340,1160,260,35,'#8d674b');ctx.fillStyle='#f0d8a6';ctx.font='16px monospace';ctx.fillText(currentHouseTitle,1390,1050)}
+  function drawHouseInterior(){block(0,0,WORLD_W,WORLD_H,'#000');for(let y=300;y<2120;y+=88)for(let x=1200;x<1740;x+=92){block(x,y,88,84,'#5c4c3a');block(x+3,y+3,82,2,'#756044');block(x+3,y+5,2,75,'#514333')}block(1180,300,18,2200,'#2d2925');block(1740,300,18,2200,'#2d2925');block(1180,300,578,18,'#2d2925');block(1180,2100,578,18,'#2d2925');block(1320,1180,300,120,'#382b25');block(1340,1160,260,35,'#8d674b');ctx.fillStyle='#f0d8a6';ctx.font='16px monospace';ctx.fillText(currentHouseTitle,1390,1050)}
   function drawHouseFurniture(){const x=1430,y=1430;block(x-65,y+20,130,12,'#30251e');block(x-58,y-20,116,42,'#754d37');block(x-52,y-34,104,18,'#c0a078');block(x+85,y-5,42,42,'#493b2b');block(x+78,y-13,56,10,'#9b7c50');block(x-115,y-7,40,40,'#4b4438');block(x-121,y-15,52,9,'#9a8059')}
   function drawCookpot(){const x=cookpot.x,y=cookpot.y;block(x-22,y+9,44,7,'#302820');block(x-17,y-11,34,20,'#4d4540');block(x-14,y-17,28,8,'#95846a');block(x-3,y-8,6,6,'#d99b51');block(x-27,y-20,54,4,'#6b6255');ctx.fillStyle='#f0e3bd';ctx.font='11px monospace';ctx.textAlign='center';ctx.fillText('\u6599\u7406\u934b',x,y-28);ctx.textAlign='start'}
-  function drawSecretRealm(){block(0,0,WORLD_W,WORLD_H,'#151719');const a=Math.max(0,Math.floor((player.x-W/2)/100)*100),b=Math.max(250,Math.floor((player.y-H/2)/90)*90);for(let y=b;y<Math.min(WORLD_H,b+H+120);y+=90)for(let x=a;x<a+W+140;x+=100){block(x,y,94,84,'#292b2c');block(x+4,y+4,86,76,((x+y)/10)%3===0?'#343533':'#303233');block(x+7,y+12,80,3,'#454444');if((x+y)%5===0)block(x+66,y+58,18,5,'#61483b')}for(const p of [[1460,1190],[1630,1310],[1380,1330],[1690,1170]]){block(p[0]-22,p[1]+9,44,8,'#201f20');block(p[0]-18,p[1]-22,36,34,'#47413a');block(p[0]-12,p[1]-30,24,12,'#55463d');block(p[0]-4,p[1]-22,8,13,'#a56841')}ctx.fillStyle='#dfb47c';ctx.font='14px monospace';ctx.fillText('忘却の秘境',player.x-80,player.y-245)}
+  function drawSecretRealm(){block(0,0,WORLD_W,WORLD_H,'#000');const a=Math.max(1200,Math.floor((player.x-W/2)/100)*100),b=Math.max(1080,Math.floor((player.y-H/2)/90)*90);for(let y=b;y<Math.min(1550,b+H+120);y+=90)for(let x=a;x<Math.min(1850,a+W+140);x+=100){block(x,y,94,84,'#292b2c');block(x+4,y+4,86,76,((x+y)/10)%3===0?'#343533':'#303233');block(x+7,y+12,80,3,'#454444');if((x+y)%5===0)block(x+66,y+58,18,5,'#61483b')}for(let x=1200;x<1850;x+=70){block(x,1080,68,22,'#4e4b43');block(x,1528,68,22,'#4e4b43')}for(let y=1090;y<1530;y+=70){block(1200,y,22,68,'#4e4b43');block(1828,y,22,68,'#4e4b43')}for(const p of [[1460,1190],[1630,1310],[1380,1330],[1690,1170]]){block(p[0]-22,p[1]+9,44,8,'#201f20');block(p[0]-18,p[1]-22,36,34,'#47413a');block(p[0]-12,p[1]-30,24,12,'#55463d');block(p[0]-4,p[1]-22,8,13,'#a56841')}ctx.fillStyle='#dfb47c';ctx.font='14px monospace';ctx.fillText('忘却の秘境',player.x-80,player.y-245)}
   function drawSecretMonster(o){if(characterArt){ctx.drawImage(characterArt,550,830,140,145,o.x-53,o.y-112,106,112);ctx.drawImage(characterArt,1070,830,100,130,o.x+22,o.y-88,73,88)}else drawMonsterAt(o,true);ctx.fillStyle='#efd9a0';ctx.font='14px monospace';ctx.textAlign='center';ctx.fillText('秘境の魔物',o.x,o.y-120);ctx.textAlign='start'}
   function drawInn() {
     const x=village.x,y=village.y;
@@ -546,8 +547,8 @@
     b(20,-18,8,5,'#d1a04c');
   }
   function drawAncientRuin(camX=0,camY=0) {
-    block(0,0,WORLD_W,WORLD_H,'#222528');
-    for(let y=Math.max(250,Math.floor(camY/TILE)*TILE);y<Math.min(WORLD_H,camY+H+TILE);y+=TILE)for(let x=Math.max(0,Math.floor(camX/TILE)*TILE);x<Math.min(1800,camX+W+TILE);x+=TILE){
+    block(0,0,WORLD_W,WORLD_H,'#000');
+    for(let y=Math.max(250,Math.floor(camY/TILE)*TILE);y<Math.min(1300,camY+H+TILE);y+=TILE)for(let x=Math.max(0,Math.floor(camX/TILE)*TILE);x<Math.min(1800,camX+W+TILE);x+=TILE){
       const k=(x/50*7+y/50*11)%9;
       block(x,y,49,49,k<3?'#41413e':k<6?'#3b3c3a':'#454440');
       block(x+2,y+2,45,2,'#50504b');block(x+2,y+4,2,40,'#484843');
@@ -573,10 +574,10 @@
     });
   }
   function drawAshVillage(camX=0,camY=0) {
-    block(0,0,WORLD_W,WORLD_H,'#393b35');
+    block(0,0,WORLD_W,WORLD_H,'#000');
     // Tile colors shift from burned village earth into green forest and wet lowlands.
-    const x0=Math.max(0,Math.floor(camX/42)*42),x1=Math.min(WORLD_W,camX+W+84);
-    const y0=Math.max(250,Math.floor(camY/38)*38),y1=Math.min(WORLD_H,camY+H+76);
+    const x0=Math.max(40,Math.floor(camX/42)*42),x1=Math.min(WORLD_W-40,camX+W+84);
+    const y0=Math.max(290,Math.floor(camY/38)*38),y1=Math.min(WORLD_H-40,camY+H+76);
     for(let y=y0;y<y1;y+=38)for(let x=x0;x<x1;x+=42){
       const n=(x*17+y*31)%19;
       const palette=y>1950||x>3500?['#52665c','#485b52','#5a6a5c','#43584f']:x>2750?['#526b43','#465d3c','#5c7046','#3d5539']:['#555346','#46483d','#4b493e','#5c5749'];
@@ -645,8 +646,9 @@
   function draw() {
     const camX=Math.max(0,Math.min(WORLD_W-W,player.x-W/2)),camY=Math.max(0,Math.min(WORLD_H-H,player.y-H/2));
     ctx.setTransform(1,0,0,1,0,0);
-    ctx.clearRect(0,0,W,H);
+    ctx.clearRect(0,0,W,H);ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
     ctx.save();ctx.translate(-camX,-camY);
+    const mapBounds=mapId==='ruins'?{x:0,y:250,w:1800,h:1050}:mapId==='secret'?{x:1200,y:1080,w:650,h:470}:mapId==='house'?{x:1180,y:300,w:578,h:1818}:{x:40,y:290,w:WORLD_W-80,h:WORLD_H-330};ctx.beginPath();ctx.rect(mapBounds.x,mapBounds.y,mapBounds.w,mapBounds.h);ctx.clip();
     if(mapId==='ruins')drawAncientRuin(camX,camY);else if(mapId==='secret')drawSecretRealm();else if(mapId==='house')drawHouseInterior();else{drawAshVillage(camX,camY);drawMarshPools();drawRiverAndBridge();drawForestTrail();}
     if(mapId==='outside'){ctx.beginPath();ctx.moveTo(635,320);ctx.lineTo(700,395);ctx.lineTo(835,470);ctx.lineTo(970,525);ctx.lineTo(1070,555);ctx.lineTo(1190,600);ctx.strokeStyle='#292c29';ctx.lineWidth=106;ctx.lineCap='square';ctx.lineJoin='round';ctx.stroke();ctx.beginPath();ctx.moveTo(635,320);ctx.lineTo(700,395);ctx.lineTo(835,470);ctx.lineTo(970,525);ctx.lineTo(1070,555);ctx.lineTo(1190,600);ctx.strokeStyle='#806d48';ctx.lineWidth=66;ctx.lineCap='square';ctx.lineJoin='round';ctx.stroke();if(battleWon)drawInn();}
     const objects=[
@@ -733,7 +735,7 @@
     if(player.moving){
       const mag=Math.hypot(dx,dy);dx/=mag;dy/=mag;
       const nx=player.x+dx*3.2*dt,ny=player.y+dy*3.2*dt;
-      const isBlocked=(x,y)=>(mapId==='house'&&(x<1220||x>1720||y<340||y>2070))||(mapId==='ruins'&&(x<36||x>1764||y<286||y>1244))||(mapId==='outside'&&villageHomes.some(h=>x>h.x-8&&x<h.x+h.w+8&&y>h.y+24&&y<h.y+h.h+4&&Math.abs(x-h.doorX)>18))||trees.some(t=>Math.hypot(x-t.x,y-t.y)<42)||forestTrees.some(t=>Math.hypot(x-t.x,y-t.y)<31*t.size) || (Math.abs(x-village.x)<66&&y>village.y-83&&y<village.y+36);
+      const isBlocked=(x,y)=>(mapId==='house'&&(x<1220||x>1720||y<340||y>2070))||(mapId==='ruins'&&(x<36||x>1764||y<286||y>1244))||(mapId==='secret'&&(x<1236||x>1814||y<1116||y>1514))||(mapId==='outside'&&(x<45||x>WORLD_W-45||y<285||y>WORLD_H-45))||(mapId==='outside'&&villageHomes.some(h=>x>h.x-8&&x<h.x+h.w+8&&y>h.y+24&&y<h.y+h.h+4&&Math.abs(x-h.doorX)>18))||trees.some(t=>Math.hypot(x-t.x,y-t.y)<42)||forestTrees.some(t=>Math.hypot(x-t.x,y-t.y)<31*t.size) || (Math.abs(x-village.x)<66&&y>village.y-83&&y<village.y+36);
       if(!isBlocked(nx,player.y)) player.x=Math.max(35,Math.min(WORLD_W-35,nx));
       if(!isBlocked(player.x,ny)) player.y=Math.max(250,Math.min(WORLD_H-30,ny));
       player.dir=Math.abs(dx)>Math.abs(dy)?(dx<0?'left':'right'):(dy<0?'up':'down');
