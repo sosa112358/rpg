@@ -91,6 +91,7 @@
     ['リリア', '……もう魔物が来る。戦いの前に、あなたの名前を教えて。']
   ];
   const chapterDialogues = {
+    afterFirstBattle: [[HERO_LABEL,'敵を倒せた……。リリア、助けてくれてありがとう。'],['リリア','ううん。でも、ここはまだ危険だよ。遺跡の奥から、別の魔物が来るかもしれない。'],[HERO_LABEL,'ここに留まるのは危ない。地上へ出よう。'],['リリア','出口はあの石段の先。外には小さな村があるの。そこで、あなたの剣のことを話すね。'],['リリア','足元に気をつけて。外へ出たら、まずガルドを探そう。']],
     lilia: [
       ['リリア','歩ける？　あなたは祭壇のそばで眠っていたの。黒い剣だけが、ずっとあなたを待っていたみたいに残されていた。'],
       ['名もなき剣士','俺を知っているのか。どうして、ここにいた？'],
@@ -344,7 +345,7 @@
   setInterval(saveWorld,1500);
   window.addEventListener('rpg-battle-won', e => {
     const key=e.detail?.key||'gate'; battleWon=true;
-    if(key==='gate'){mapId='outside';player.x=returnPoint.x+120;player.y=returnPoint.y+60;chapterStage=3;traveler.x=1010;traveler.y=730;setObjective('ガルドに村の状況を聞こう');worldFrame.querySelector('.world-location').textContent='灰に沈む村 — 灰の夜から300年';say('魔物を退けた。石扉の向こうには、灰に沈む村が広がっている。');}
+    if(key==='gate'){chapterStage=3;setObjective('遺跡の出口から村へ出よう');playDialogue(chapterDialogues.afterFirstBattle,()=>{mapId='outside';player.x=returnPoint.x+120;player.y=returnPoint.y+60;traveler.x=1010;traveler.y=730;worldFrame.querySelector('.world-location').textContent='灰に沈む村';setObjective('ガルドに村の状況を聞こう');say('二人は崩れた石段を上り、灰色の空の下に広がる村へ出た。');saveWorld();});}
     else if(key==='road'){chapterStage=6;setObjective('老婆から古文書の場所を聞こう');say('鐘楼への道を取り戻した。村の老婆が、教会跡で待っている。');}
     else if(key==='ambush'){if(pendingClue>=0)clueSites[pendingClue].found=true;chapterStage=4.1;pendingClue=-1;if(clueSites.every(o=>o.found)){chapterStage=5;setObjective('鐘楼への道を塞ぐ魔物を倒そう');say('三つの手がかりを守る魔物を退けた。鐘楼への道が見えた。');}else setObjective('残りの手がかりを探そう（'+clueSites.filter(o=>!o.found).length+'つ）');}
     else if(key==='bellGuard'){chapterStage=8.5;setObjective('鐘楼の頂上へ向かおう');say('守りの魔物が倒れ、鐘楼の扉が開いた。');}
