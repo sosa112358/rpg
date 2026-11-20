@@ -258,3 +258,13 @@ body{background:#17191b}
 @media(prefers-reduced-motion:reduce){.combatant.is-attacking,.combatant.is-hit,.damage-number{animation-duration:.01ms}}
 
 .danger-button{display:block;margin:14px 0 5px;padding:10px 14px;border:1px solid #a84b4b;border-radius:5px;background:#472326;color:#ffe1dc;font:inherit;font-weight:800;cursor:pointer}.danger-button:hover{background:#682b2e}.reset-note{display:block;color:#b9aeb0;font-size:10px;line-height:1.6}.options-content hr{border:0;border-top:1px solid #ffffff20;margin:18px 0 12px}
+
+/* Party members stand together in combat. */
+.encounter-overlay.battle-open .party-side{left:auto;right:2.5%;top:auto;bottom:8%;display:flex;flex-direction:row;align-items:flex-end;justify-content:flex-end;gap:8px;width:auto;max-width:54%;padding:0;background:transparent;border:0;border-radius:0;box-shadow:none;color:#172022}
+.encounter-overlay.battle-open .party-side .combatant{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;min-width:118px;width:118px;padding:6px 5px;background:#d8d8cbe8;border:1px solid #ece8d3;border-radius:4px;text-align:center;box-shadow:2px 3px #101211}
+.encounter-overlay.battle-open .party-side .party-hero-sprite,.encounter-overlay.battle-open .party-side .party-companion-sprite{display:block;width:100px;height:120px;image-rendering:pixelated;object-fit:contain}
+.encounter-overlay.battle-open .party-side .combatant strong{display:block;max-width:100%;font-size:12px;color:#182122;text-align:center}
+.encounter-overlay.battle-open .party-side .combatant small{font-size:9px;line-height:1.3;color:#27312e;white-space:nowrap}
+.encounter-overlay.battle-open .party-side .combatant .hp-track{width:100%;height:8px;background:#445044;border:1px solid #e3e3ce}
+.encounter-overlay.battle-open .battle-hero-stand{display:none}
+@media(max-width:720px){.encounter-overlay.battle-open .party-side{right:1%;bottom:9%;gap:4px;max-width:51%}.encounter-overlay.battle-open .party-side .combatant{min-width:76px;width:76px;padding:4px 3px}.encounter-overlay.battle-open .party-side .party-hero-sprite,.encounter-overlay.battle-open .party-side .party-companion-sprite{width:62px;height:72px}.encounter-overlay.battle-open .party-side .combatant strong{font-size:9px}.encounter-overlay.battle-open .party-side .combatant small{font-size:7px}}
