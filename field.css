@@ -23,7 +23,7 @@
 .equipment-panel label{display:grid;grid-template-columns:58px 1fr;align-items:center;gap:8px;color:#d9d8c4;font:11px monospace}
 .equipment-panel select{min-width:0;padding:8px;border:1px solid #8b805f;background:#151b1a;color:#fff0c9;font:11px monospace}
 .party-companion-sprite{display:block;width:64px;height:76px;image-rendering:pixelated;filter:drop-shadow(0 6px 3px #101313a8)}
-.encounter-overlay.battle-open .party-companion-sprite{display:none}
+.encounter-overlay.battle-open .party-companion-sprite{display:block;visibility:visible;opacity:1}.combatant.active-turn{outline:2px solid #f4d878;filter:drop-shadow(0 0 6px #efce69)}
 .options-dialog{width:min(520px,calc(100% - 24px));max-height:min(80dvh,620px);padding:18px;background:#18221e;color:#f1e4c4;border:2px solid #b9a06e;box-shadow:5px 6px #090b0b}
 .options-dialog::backdrop{background:#080c0bd9;backdrop-filter:blur(3px)}
 .options-head{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #56624a;padding-bottom:10px}
