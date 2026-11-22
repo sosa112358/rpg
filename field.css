@@ -101,7 +101,7 @@ main{flex:1;width:100%;height:calc(100dvh - 54px);min-height:0;margin:0}
 .combatant.enemy small{display:block;text-shadow:1px 2px #151515;font-size:11px}
 .encounter-overlay.battle-open .battle-hero-stand{position:absolute;z-index:3;left:54%;bottom:13%;width:178px;height:222px;image-rendering:pixelated;filter:drop-shadow(0 9px 5px #101313b5)}
 .encounter-overlay.battle-open .battle-bottom{position:absolute;z-index:6;left:18px;bottom:16px;width:320px;display:block;padding:0;pointer-events:none}
-.encounter-overlay.battle-open .combat-log{display:none}
+.encounter-overlay.battle-open .combat-log{position:fixed;z-index:20;left:16px;top:68px;display:flex;flex-direction:column;gap:3px;width:min(350px,42%);max-height:96px;overflow:hidden;padding:6px 8px;background:#111820d9;border:1px solid #c0a873;border-radius:3px;color:#fff1d2;font-size:11px;line-height:1.45;pointer-events:none}.encounter-overlay.battle-open .combat-log p{margin:0;padding:2px 4px;background:#111a;white-space:normal}.encounter-overlay.battle-open .combat-log p:first-child{color:#ffe39a;font-weight:700}
 .encounter-overlay.battle-open .battle-controls{display:block;padding:10px;background:#101214ed;border:2px solid #d1c5a3;border-radius:4px;box-shadow:3px 4px #090a0b;pointer-events:auto}
 .encounter-overlay.battle-open .active-hero{display:none}
 .encounter-overlay.battle-open .action-buttons{display:grid;grid-template-columns:1fr 1fr;gap:5px}
