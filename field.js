@@ -57,7 +57,7 @@
     const l=window.rpgLiliaStats(s.level);quickGrowth.querySelector('#lilia-growth-status').textContent=s.liliaJoined?'仲間':'初戦で加入';quickGrowth.querySelector('#lilia-growth-level').textContent='Lv.'+l.level;quickGrowth.querySelector('#lilia-growth-hp').textContent=l.maxHp;quickGrowth.querySelector('#lilia-growth-mp').textContent=l.maxMp;quickGrowth.querySelector('#lilia-growth-atk').textContent=l.atk;quickGrowth.querySelector('#lilia-growth-magic').textContent=l.magic;quickGrowth.querySelector('#lilia-growth-crit').textContent=(l.critRate*100)+'%';quickGrowth.querySelector('#lilia-growth-crit-dmg').textContent=(Math.round(l.critDamage*1000)/10)+'%';
     quickGrowth.querySelector('#skill-list').innerHTML=window.rpgSkills.map(skill=>{
       const learned=s.learnedSkills.includes(skill.id),equipped=s.equippedSkill===skill.id,available=s.level>=skill.level&&s.skillPoints>=skill.points;
-      const action=skill.owner==='lilia'?'<button disabled>リリア専用・Lv2で自動解放</button>':learned?'<button data-equip-skill="'+skill.id+'" '+(equipped?'disabled':'')+'>'+(equipped?'\u88c5\u5099\u4e2d':'\u30bb\u30c3\u30c8')+'</button>':available?'<button data-learn-skill="'+skill.id+'">\u7fd2\u5f97 ('+skill.points+' SP)</button>':'<button disabled>'+(s.level<skill.level?'Lv.'+skill.level+'\u3067\u89e3\u653e':'SP\u4e0d\u8db3')+'</button>'
+      const action=skill.owner==='lilia'?'<button disabled>リリア専用・習得済み</button>':learned?'<button data-equip-skill="'+skill.id+'" '+(equipped?'disabled':'')+'>'+(equipped?'\u88c5\u5099\u4e2d':'\u30bb\u30c3\u30c8')+'</button>':available?'<button data-learn-skill="'+skill.id+'">\u7fd2\u5f97 ('+skill.points+' SP)</button>':'<button disabled>'+(s.level<skill.level?'Lv.'+skill.level+'\u3067\u89e3\u653e':'SP\u4e0d\u8db3')+'</button>'
       return '<article class="skill-card '+(learned?'learned':'locked')+'"><div><strong>'+skill.name+'</strong><small>\u5fc5\u8981Lv '+skill.level+' / '+(skill.type==='magic'?'\u9b54\u6cd5':'\u7269\u7406')+' / MP '+skill.mp+'</small><p>'+skill.desc+'</p></div>'+action+'</article>';
     }).join('');
   }
@@ -98,7 +98,7 @@
     ['リリア', '……もう魔物が来る。戦いの前に、あなたの名前を教えて。']
   ];
   const chapterDialogues = {
-    afterFirstBattle: [[HERO_LABEL,'敵を倒せた……。リリア、助けてくれてありがとう。'],['リリア','ううん。でも、ここはまだ危険だよ。遺跡の奥から、別の魔物が来るかもしれない。'],[HERO_LABEL,'ここに留まるのは危ない。地上へ出よう。'],['リリア','出口はあの石段の先。外には小さな村があるの。そこで、あなたの剣のことを話すね。'],['リリア','足元に気をつけて。外へ出たら、まずガルドを探そう。']],
+    afterFirstBattle: [[HERO_LABEL,'敵を倒せた……。リリア、助けてくれてありがとう。'],['リリア','ううん。でも、ここはまだ危険だよ。遺跡の奥から、別の魔物が来るかもしれない。'],[HERO_LABEL,'ここに留まるのは危ない。地上へ出よう。'],['リリア','出口はあの石段の先。外には小さな村があるの。そこで、あなたの剣のことを話すね。'],['リリア','足元に気をつけて。外へ出たら、まずガルドを探そう。'],[HERO_LABEL,'これからも一緒に来て、戦ってくれるか。'],['リリア','もちろん。仲間として一緒に行くよ。ファイアボールで援護するね。'],[HERO_LABEL,'よし、二人で手がかりを探そう。']],
     lilia: [
       ['リリア','歩ける？　あなたは祭壇のそばで眠っていたの。黒い剣だけが、ずっとあなたを待っていたみたいに残されていた。'],
       ['名もなき剣士','俺を知っているのか。どうして、ここにいた？'],
